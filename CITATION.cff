@@ -4,6 +4,7 @@ title: "Global Fundamental-Parameter Mapping of Lunar Elemental Abundances from 
 type: software
 repository-code: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
 url: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
+license: MIT
 authors:
   - family-names: Kanjilal
     given-names: Smarak

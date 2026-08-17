@@ -20,6 +20,7 @@
   ],
   "upload_type": "software",
   "access_right": "open",
+  "license": "MIT",
   "keywords": [
     "lunar geochemistry",
     "X-ray fluorescence",

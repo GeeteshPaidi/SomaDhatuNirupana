@@ -130,3 +130,7 @@ python fig_coverage_map.py
 
 If you use this code or the accompanying paper, please cite as described in
 [`CITATION.cff`](CITATION.cff).
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
