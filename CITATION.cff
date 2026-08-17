@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Global Fundamental-Parameter Mapping of Lunar Elemental Abundances from Chandrayaan-2 CLASS XRF Data with Cross-Modal Super-Resolution"
+type: software
+repository-code: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
+url: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
+authors:
+  - family-names: Kanjilal
+    given-names: Smarak
+    affiliation: Independent Researcher
+    email: smarakkanjilal@gmail.com
+    orcid: "https://orcid.org/0009-0005-4361-3119"
+  - family-names: Maji
+    given-names: Subarno
+    affiliation: Independent Researcher
+    email: subarnomaji@kgpian.iitkgp.ac.in
+    orcid: "https://orcid.org/0009-0006-4698-6882"
+  - family-names: Paidi
+    given-names: Geetesh Chandra
+    affiliation: Independent Researcher
+    email: paidigeeteshchandra@gmail.com
+    orcid: "https://orcid.org/0009-0008-1153-3079"
+# NOTE: once the corresponding TGRS paper and/or a tagged Zenodo release exist,
+# add a `version`, `date-released`, and `identifiers` (Zenodo concept DOI) block here.

@@ -1,0 +1,39 @@
+{
+  "title": "Global Fundamental-Parameter Mapping of Lunar Elemental Abundances from Chandrayaan-2 CLASS XRF Data with Cross-Modal Super-Resolution",
+  "description": "Pipeline for fundamental-parameter forward modelling and TRF spectral fitting of Chandrayaan-2 CLASS XRF data, adaptive-Gaussian spatial abundance mapping, cross-modal guided super-resolution, and Apollo/Luna ground-truth validation. Accompanies a paper submitted to IEEE Transactions on Geoscience and Remote Sensing (TGRS).",
+  "creators": [
+    {
+      "name": "Kanjilal, Smarak",
+      "affiliation": "Independent Researcher",
+      "orcid": "0009-0005-4361-3119"
+    },
+    {
+      "name": "Maji, Subarno",
+      "affiliation": "Independent Researcher",
+      "orcid": "0009-0006-4698-6882"
+    },
+    {
+      "name": "Paidi, Geetesh Chandra",
+      "affiliation": "Independent Researcher",
+      "orcid": "0009-0008-1153-3079"
+    }
+  ],
+  "upload_type": "software",
+  "access_right": "open",
+  "keywords": [
+    "lunar geochemistry",
+    "X-ray fluorescence",
+    "Chandrayaan-2",
+    "CLASS",
+    "elemental abundance mapping",
+    "super-resolution",
+    "remote sensing"
+  ],
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/GeeteshPaidi/SomaDhatuNirupana",
+      "resource_type": "software"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+# Raw CLASS spectra - ~60k small FITS files, 2.2GB, regenerable by re-extracting data/archive
+data/raw/
+
+# Original PRADAN zip downloads - 277MB/260MB, over GitHub's per-file limit
+data/archive/*.zip
+
+# Preprocessed/fitted catalogues - up to 1.7GB each, regenerable from data/raw
+# via src/fitting/prepare_data.py + src/fitting/run_full_fit.py
+data/processed/
+
+# Bulky regenerable intermediate map/SR arrays (npy/npz, ~100MB+ per dir).
+# The final figures the paper embeds live at outputs/figures/*.png and ARE tracked.
+outputs/figures/maps_expanded/
+outputs/figures/maps_expanded_lat60/
+outputs/figures/sr_expanded/
+outputs/figures/sr_expanded_lat60/
+outputs/figures/sr_ipynb_lat60/
+outputs/figures/maps_ipynb_lat60/
+outputs/figures/maps_ipynb/*.npy
+outputs/figures/maps_v3/
+outputs/figures/maps_v3_coarse/
+outputs/figures/maps_ipynb/
+outputs/figures/*.npz
+
+# Notebooks / scratch (superseded by src/mapping scripts)
+*.ipynb
+.ipynb_checkpoints/
+
+# Third-party template downloads (get from IEEE/Overleaf directly, not redistributed here)
+IEEE-Transactions-LaTeX2e-templates-and-instructions*/
+IEEE-Transactions-LaTeX2e-templates-and-instructions*.zip
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
