@@ -42,35 +42,43 @@ def main():
     coverage = grid.check_coverage()
     print(f"\nTotal footprints: {n_total}, coverage: {coverage*100:.2f}%")
 
-    occ = (grid.arr[:, :, 1] > 0)
+    # The 99.0% statistic is a binary occupied/unoccupied count over the
+    # same grid.arr[:, :, 1] count array used below -- at that saturation
+    # level a plain boolean occ map is ~99% one colour and shows essentially
+    # no visible structure. Plotting the actual per-cell footprint COUNT
+    # (same underlying accumulator, just not thresholded to a boolean) shows
+    # the real orbital-track density variation, and the empty cells that
+    # drive the 1.0% gap are still exactly the cells with count == 0 -- the
+    # single darkest colour on the scale, unambiguous with a colorbar.
+    counts = grid.arr[:, :, 1]
+    n_empty = int(np.sum(counts == 0))
+    print(f"Empty cells: {n_empty} / {counts.size} ({100 * n_empty / counts.size:.2f}%)")
+    log_counts = np.log10(counts + 1)
 
     plt.rcParams.update({"font.size": 9})
-    fig, ax = plt.subplots(figsize=(3.5, 1.95), dpi=600)
-    fig.patch.set_facecolor("#0d0d0d")
-    ax.set_facecolor("#0d0d0d")
+    fig, ax = plt.subplots(figsize=(3.5, 2.3), dpi=600)
 
-    ax.imshow(occ, extent=[-180, 180, -90, 90], origin="lower",
-              cmap="viridis", aspect="equal", interpolation="nearest")
+    im = ax.imshow(log_counts, extent=[-180, 180, -90, 90], origin="lower",
+                    cmap="viridis", aspect="equal", interpolation="nearest")
     ax.set_xlim(-180, 180)
     ax.set_ylim(-90, 90)
     ax.set_xticks(range(-150, 151, 75))
     ax.set_yticks(range(-90, 91, 45))
-    ax.tick_params(colors="white", labelsize=7)
-    for spine in ax.spines.values():
-        spine.set_edgecolor("white")
-        spine.set_linewidth(0.5)
-    ax.set_xlabel("Longitude (deg)", color="white", fontsize=8)
-    ax.set_ylabel("Latitude (deg)", color="white", fontsize=8)
+    ax.tick_params(labelsize=7)
+    ax.set_xlabel("Longitude (deg)", fontsize=8)
+    ax.set_ylabel("Latitude (deg)", fontsize=8)
     # No in-axes title: the LaTeX \caption carries the description (matches
     # the style used for Fig. 1), and a full title line overflows a
     # 3.5in single-column canvas at a readable font size.
 
+    cbar = fig.colorbar(im, ax=ax, orientation="horizontal", fraction=0.06, pad=0.32, aspect=30)
+    cbar.set_label(r"$\log_{10}$(footprints per $1^\circ\times1^\circ$ cell $+\,1$)", fontsize=7.5)
+    cbar.ax.tick_params(labelsize=7)
+
     fig.tight_layout()
     os.makedirs("../../outputs/figures/supplementary", exist_ok=True)
-    fig.savefig("../../outputs/figures/supplementary/supp_coverage.pdf",
-                bbox_inches="tight", facecolor=fig.get_facecolor())
-    fig.savefig("../../outputs/figures/supplementary/supp_coverage.png", dpi=600,
-                bbox_inches="tight", facecolor=fig.get_facecolor())
+    fig.savefig("../../outputs/figures/supplementary/supp_coverage.pdf", bbox_inches="tight")
+    fig.savefig("../../outputs/figures/supplementary/supp_coverage.png", dpi=600, bbox_inches="tight")
     print("Saved supp_coverage.pdf/.png to outputs/figures/supplementary/")
 
 
