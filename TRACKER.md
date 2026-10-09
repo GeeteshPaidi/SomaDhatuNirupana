@@ -71,8 +71,18 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
   - Status / Notes: `src/asr/fitter.py` — θ = (A, Mg/Si, Al/Si, Ca/Si, Ti/Si, Fe/Si, B, β): C_Si from oxide closure (fixed minor Na₂O 0.5, K₂O 0.1, MnO 0.15, Cr₂O₃ 0.2 wt%), O stoichiometric (not free). Continuum = physical scattered-solar term (Rayleigh+Compton / matrix μ) with free amplitude B. Fit window **1.15–7.5 keV** (avoids Na Kα 1.04 keV and the steep <1.1 keV excess seen in the stack).
 - [x] **1.6** Poisson/Cash fit on raw counts with background model; covariance, uncertainties, GoF, quality flag.
   - Status / Notes: raw counts, no denoising; model = source + β × nightside-template × exposure × n_SCD/16. Cash statistic minimised by TRF on signed deviance residuals. Uncertainties = inverse Poisson Fisher matrix; correlation matrix + condition number stored. GoF z = (C − E[C])/√Var[C] with exact per-channel Poisson expectations (Kaastra 2017). Quality bits: 1 no-conv, 2 counts < 300, 4 |z| > 3, 8 ratio at bound, 16 cond > 1e4, 32 bad geometry, 64 covariance failure. ~60 ms/fit.
-- [ ] **1.7** GATE — synthetic recovery test (bias/scatter per ratio, condition numbers, cross-temperature systematic). Do not proceed until Al/Si and Mg/Si recover acceptably.
-  - Status / Notes:
+- [x] **1.7** GATE — synthetic recovery test (bias/scatter per ratio, condition numbers, cross-temperature systematic). Do not proceed until Al/Si and Mg/Si recover acceptably.
+  - Status / Notes: **GATE PASSED for Mg/Si and Al/Si** (`src/asr/synth_recovery.py`; outputs `outputs/asr/synth/summary_gen*_fit*.csv`). Generator: forward model *with* secondary fluorescence, real 2024-12 nightside background template, 8 s / 16 SCD, ψ₁ = 10–80°, random lunar ratios, scatter level matched to the 2024-12 stack, Poisson noise. Fit: primary-only model.
+    - Same kT (1.07/1.07), 200 spectra per level — median bias / robust scatter / pull width, by Si Kα counts 100 · 300 · 1k · 3k · 10k:
+      - Mg/Si: bias +2.5%, +1.1%, −0.1%, 0.0%, +0.6% · scatter 35%, 18%, 7.7%, 4.2%, 2.3% · pulls 0.92–1.03
+      - Al/Si: bias +4.9%, +0.4%, −0.4%, +0.9%, +0.8% · scatter 36%, 13%, 5.7%, 3.3%, 1.7% · pulls 0.85–0.97
+      - Ca/Si: bias −5.4%, −1.1%, −0.6%, +0.9%, +0.3% · scatter 31%, 20%, 10%, 5.4%, 2.9%
+      - Ti/Si: scatter 138%, 58%, 27%, 14%, 7.6%; Fe/Si: scatter 149%, 97%, 32%, 19%, 9.1% (unconstrained below ~1k Si counts)
+      - Converged 100%; median cond(corr) 115 → 25; median GoF z ≈ −0.3; quality = 0 for 49% / 85% / 96% / 99% / 99.5%. 60 ms/fit.
+    - Solar-shape systematic (fit kT 1.07 keV; 100 spectra each at 1k and 10k counts), median ratio bias:
+      - true kT 0.6 keV: Mg **+40%**, Al **+24%**, Ca **−86%**, Ti −99%, Fe −99%. At 10k counts GoF z = 5.9 → wrong kT is detectable in bright spectra.
+      - true kT 1.5 keV: Mg +3%, Al 0%, Ca **+79%**, Ti +140%, Fe **+520%**; GoF does not flag it.
+    - Conclusion: Mg/Si and Al/Si carry a −3…+40% solar-shape systematic. Ca/Si is uncertain by about a factor of 2, and Ti/Si and Fe/Si by an order of magnitude, without XSM. This is the honest systematic for the paper.
 - [ ] **1.8** Smoke test on one real month; check sanity ranges; diagnostic plots (high/median/low-quality fits).
   - Status / Notes:
 
@@ -148,4 +158,5 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 
 ## Open questions for Geetesh
 
-_(none yet)_
+1. **CLASS detector efficiency / filter.** No QE curve, filter thickness, or depletion depth ships with the L1 release, and a literature search found none (C1XS-era papers mention an Al filter; the nightside background shows a strong Al Kα line). Efficiency is set to 1, which biases Fe/Si and Ca/Si by an unknown multiplicative factor (Mg/Al/Si much less). If you have the CLASS calibration paper or an ARF (e.g. Pillai et al. 2021 / Narendranath et al. 2024), point me to it.
+2. **Per-spectrum solar temperature (optional).** Synthetic tests show GoF z ≈ 6 when bright spectra are fitted with the wrong kT. Fitting kT freely for bright spectra (Si counts ≳ 3k) could reduce the solar-shape systematic. This is not a full XSM correction, but it goes beyond the PLAN's "fixed reference spectrum". Do you want me to test it as a sensitivity analysis only?
