@@ -84,7 +84,18 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
       - true kT 1.5 keV: Mg +3%, Al 0%, Ca **+79%**, Ti +140%, Fe **+520%**; GoF does not flag it.
     - Conclusion: Mg/Si and Al/Si carry a −3…+40% solar-shape systematic. Ca/Si is uncertain by about a factor of 2, and Ti/Si and Fe/Si by an order of magnitude, without XSM. This is the honest systematic for the paper.
 - [ ] **1.8** Smoke test on one real month; check sanity ranges; diagnostic plots (high/median/low-quality fits).
-  - Status / Notes:
+  - Status / Notes: **BLOCKED on a scope decision (Open questions 3–4).** Pipeline runs (`src/asr/run_month.py`, `src/asr/diag_plots.py`; 2024-12, 3,000 random dayside spectra, ~60 s with 12 workers). Findings:
+    - **Calibration (2024-12 stack, 75,707 spectra):** gain 13.714 eV/ch, offset +2.6 eV, σ₀ 73.5 eV → FWHM 183 eV @ 1.49 keV, 209 eV @ 5.9 keV (within the pre-launch "<250 eV @ 1.48 keV" spec). The gain is 1.6% above the header GAIN = 13.5.
+    - **Solar-driven instrumental Al Kα.** Nightside spectra show a strong Al Kα line, plus continuum below 1.2 keV and a 6.7 keV bump, *only* when the spacecraft is sunlit. Median Al-line rate: 31.8 c/s (n = 8,555) when SOLARANG < shadow boundary (≈109° at 100 km), vs 0.16 c/s (n = 2,254) in the lunar umbra. It correlates with solar proxies (r = 0.61 with 0.6–0.9 keV counts, 0.58 with 6.7 keV) and not with particle background (r = 0.11 with 8–20 keV). It changes on less than 30-min scales, so orbit-interpolation is not viable. Its size is comparable to the lunar Si line. The old pipeline subtracted a month-mean of it, so old Al/Si is contaminated by an amount that varies with solar activity.
+    - **New background model:** particle template P from umbra nightside (scaled per spectrum by a single 8–20 keV summed bin) plus instrumental template T from sunlit nightside (sunlit − P) with free amplitude γ. Synthetic test with γ_true = 0.5 (`summary_gen1.07_fit1.07_inst.csv`): γ is identifiable. Mg/Si and Al/Si biases stay ≤ 1%; Al/Si scatter at 300 / 1k / 3k / 10k Si counts = 31% / 14% / 5.2% / 3.5% (vs 13% / 5.7% / 3.3% / 1.7% without γ).
+    - **Real-data ratios fail the sanity ranges at kT = 1.07 keV:** median Mg/Si 0.69, Al/Si 1.07, Ca/Si 0.011 (lunar 0.15–0.3, 0.3–0.8, 0.35–0.55). γ is mostly fitted at 0. This is the same pattern as the synthetic "true sun softer than assumed" case.
+    - **kT scan on the same 3,000 spectra** (median ratio; ΣC):
+      - kT 0.4: Mg 0.33, Al 0.71, Ca 0.47; ΣC 1,558,407
+      - kT 0.6: Mg 0.50, Al 0.86, Ca 0.084; ΣC 1,528,197
+      - kT 1.07: Mg 0.69, Al 1.07, Ca 0.011; ΣC 1,519,619
+      - kT 1.5: Mg 0.81, Al 1.18, Ca 0.004; ΣC 1,522,719
+    - Likelihood barely discriminates kT (and mildly prefers 1.07). Only kT ≈ 0.4 keV gives lunar-like ratios, and picking it for that reason would be tuning (honesty rule). Bright spectra (>3k counts) have median GoF z ≈ 4.7–5 at every kT, i.e. a residual misfit that kT does not fix (candidates: solar line emission missing from S(E), the instrumental-template shape on the dayside, efficiency).
+    - Old pipeline note: Mg/Si high and Ca/Fe/Ti tiny in the TGRS results is the same solar-shape signature.
 
 ## Phase 2 — Full run (ask Geetesh before starting; ~8 h with 14 workers last time)
 
@@ -159,4 +170,9 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 ## Open questions for Geetesh
 
 1. **CLASS detector efficiency / filter.** No QE curve, filter thickness, or depletion depth ships with the L1 release, and a literature search found none (C1XS-era papers mention an Al filter; the nightside background shows a strong Al Kα line). Efficiency is set to 1, which biases Fe/Si and Ca/Si by an unknown multiplicative factor (Mg/Al/Si much less). If you have the CLASS calibration paper or an ARF (e.g. Pillai et al. 2021 / Narendranath et al. 2024), point me to it.
-2. **Per-spectrum solar temperature (optional).** Synthetic tests show GoF z ≈ 6 when bright spectra are fitted with the wrong kT. Fitting kT freely for bright spectra (Si counts ≳ 3k) could reduce the solar-shape systematic. This is not a full XSM correction, but it goes beyond the PLAN's "fixed reference spectrum". Do you want me to test it as a sensitivity analysis only?
+2. **Per-spectrum solar temperature (optional).** *(superseded by Q3)* Synthetic tests show GoF z ≈ 6 when bright spectra are fitted with the wrong kT. Fitting kT freely for bright spectra (Si counts ≳ 3k) could reduce the solar-shape systematic. This is not a full XSM correction, but it goes beyond the PLAN's "fixed reference spectrum". Do you want me to test it as a sensitivity analysis only?
+3. **Solar spectrum source (blocking 1.8 → Phase 2).** Real ratios depend on the assumed kT by a factor of 1.5–2.5 for Mg/Si and Al/Si, and by about 100× for Ca/Si. The data cannot pin kT per spectrum. Options:
+   - (a) **GOES XRS** 1–8 Å / 0.5–4 Å ratio → isothermal T(t) and EM(t) per exposure. Public NOAA data, zero cost, standard method (White et al. 2005). This gives a time-resolved solar shape without XSM. *Recommended.*
+   - (b) Chandrayaan-2 **XSM** L1/L2 spectra from PRADAN (needs your PRADAN login). This is the proper answer, but the PLAN puts a full XSM correction out of scope.
+   - (c) Keep the fixed reference spectrum (kT = 1.07 keV) and report Mg/Si and Al/Si as relative maps with a −3…+40% (or larger) solar systematic, with absolute ratios explicitly not interpretable.
+4. **Instrumental Al (affects Al/Si, the only element that validated before).** Should the γ-template approach above be the method, or should Al/Si be restricted to spectra/time periods where the sunlit-nightside Al level is low?

@@ -30,25 +30,31 @@ import xrf_model as xm  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CAL = dict(gain=0.01363, offset=0.017, sigma0=0.045)
 SC_FRAC_3KEV = 0.004
+GAMMA_TRUE = 0.5
 # Lunar composition ranges (weight ratios to Si), from PLAN.md sanity ranges / Apollo soils.
 RANGES = {"Mg": (0.10, 0.35), "Al": (0.20, 0.80), "Ca": (0.30, 0.60), "Ti": (0.005, 0.30), "Fe": (0.10, 0.80)}
 
 _G = {}
 
 
-def _init(kT_gen, kT_fit, bkg_path):
-    d = np.load(bkg_path)
-    bkg = d["night"] / d["tn"]
+def _init(kT_gen, kT_fit, bkg_path, inst_path=None):
+    if bkg_path.endswith(".npz"):  # legacy single month-mean nightside template, no instrumental term
+        d = np.load(bkg_path)
+        bkg, inst = d["night"] / d["tn"], None
+    else:
+        bkg = np.load(bkg_path)
+        inst = np.load(inst_path) if inst_path else None
     det = xm.Detector(**CAL)
-    _G["gen"] = ft.SpectrumFitter(xm.ForwardModel(kT=kT_gen, secondary=True, e_max=15, de=0.005), det, bkg)
-    _G["fit"] = ft.SpectrumFitter(xm.ForwardModel(kT=kT_fit, secondary=False, e_max=15, de=0.005), det, bkg)
-    _G["bkg"] = bkg
+    _G["gen"] = ft.SpectrumFitter(xm.ForwardModel(kT=kT_gen, secondary=True, e_max=15, de=0.005), det, bkg,
+                                  inst_rate=inst)
+    _G["fit"] = ft.SpectrumFitter(xm.ForwardModel(kT=kT_fit, secondary=False, e_max=15, de=0.005), det, bkg,
+                                  inst_rate=inst)
 
 
 def truth_theta(G, ratios, s1, si_counts):
     """Return theta giving `si_counts` Si Ka counts and the stack-like scatter level."""
     r = np.array([ratios[e] for e in xm.FIT_ELEMENTS])
-    th = np.r_[1.0, r, 0.0, 0.0]
+    th = np.r_[1.0, r, 0.0, 0.0, 0.0]
     I, comp = G.fm.primary_fast(ratios, s1)
     i_si = [i for i, ln in enumerate(G.fm.lines) if ln.el == "Si" and ln.label == "Ka"][0]
     th[0] = si_counts / (I[i_si] / G.i_norm)
@@ -58,6 +64,7 @@ def truth_theta(G, ratios, s1, si_counts):
     k3 = np.argmin(np.abs(G.E - 3.0))
     th[6] = SC_FRAC_3KEV * si_peak / (th[0] * sc[k3])
     th[7] = 1.0
+    th[8] = GAMMA_TRUE if G.use_inst else 0.0
     return th
 
 
@@ -71,9 +78,10 @@ def generate_counts(G, th, s1, exposure=8.0, n_scd=16, rng=None, secondary=True)
         I, _ = G.fm.primary_fast(r, s1)
     comp = xm.composition_from_ratios(r)
     src = th[0] * G.eff * ((I / G.i_norm) @ G.R + th[6] * G._scatter(comp, s1))
-    m = src + th[7] * G.bkg_rate * exposure * n_scd / 16.0
+    bk = G.background_counts(exposure, n_scd)
+    m = src + th[7] * bk[0] + th[8] * bk[1]
     counts = np.zeros(G.det.n_channels)
-    counts[G.sel] = rng.poisson(m)
+    counts[G.sel] = rng.poisson(m)  # hi-band channels included; fitter sums them
     return counts
 
 
@@ -104,14 +112,16 @@ def main():
     ap.add_argument("--kT_fit", type=float, default=1.07)
     ap.add_argument("--workers", type=int, default=12)
     ap.add_argument("--bkg", default=os.path.join(ROOT, "outputs", "asr", "stack_2024_12.npz"))
+    ap.add_argument("--inst", default=None, help="instrumental template .npy (enables gamma)")
+    ap.add_argument("--tag", default="")
     ap.add_argument("--out_dir", default=os.path.join(ROOT, "outputs", "asr", "synth"))
     args = ap.parse_args()
     os.makedirs(args.out_dir, exist_ok=True)
     levels = [int(x) for x in args.levels.split(",")]
     jobs = [(1000 * li + i, lv) for li, lv in enumerate(levels) for i in range(args.n)]
-    with Pool(args.workers, initializer=_init, initargs=(args.kT_gen, args.kT_fit, args.bkg)) as p:
+    with Pool(args.workers, initializer=_init, initargs=(args.kT_gen, args.kT_fit, args.bkg, args.inst)) as p:
         res = pd.DataFrame(p.map(one, jobs, chunksize=4))
-    tag = f"gen{args.kT_gen}_fit{args.kT_fit}"
+    tag = f"gen{args.kT_gen}_fit{args.kT_fit}{args.tag}"
     res.to_parquet(os.path.join(args.out_dir, f"recovery_{tag}.parquet"), index=False)
 
     rows = []
