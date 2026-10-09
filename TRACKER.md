@@ -8,7 +8,7 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 ## Phase 0 — Orientation
 
 - [x] **0.1** Map the repo (summary below).
-  - Status / Notes: done — see "0.1 Repo map".
+  - Status / Notes: done — see "0.1 Repo map". Phase 0 committed in 712dcaa (setup) + 08bd8a4 (results).
 - [x] **0.2** Confirm the environment runs on one month / a few hundred spectra and reproduces the old behaviour; record old ratios as baseline.
   - Status / Notes: done (`src/asr/baseline_check.py` → `outputs/asr/baseline/baseline_summary.json`, `baseline_ratio_percentiles.csv`, `baseline_validation_expanded_5deg.csv`). Python 3.12.10, xraylib 4.2.1.
     - 2025-10: 27,237 files, 16,137 dayside, 1,406 nightside bg. Re-preprocessing 300 random dayside files: max relative diff vs stored catalogue = **0.0**. Re-fitting them: all 300 succeed; for the 146 also in the stored result, max |ΔC| = **0.0** for all 7 elements → bit-exact reproduction.
