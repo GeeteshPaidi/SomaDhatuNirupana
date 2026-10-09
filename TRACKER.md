@@ -59,18 +59,18 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 
 ## Phase 1 — Forward model and fitting
 
-- [ ] **1.1** Solar-spectrum model (reference flare spectrum, configurable temperature).
-  - Status / Notes:
-- [ ] **1.2** Rewrite primary fluorescence per PLAN §4; unit-test against hand-computed values for one element.
-  - Status / Notes:
-- [ ] **1.3** Secondary fluorescence: concentration-coupled, or drop with justification.
-  - Status / Notes:
-- [ ] **1.4** Detector response: binned Gaussian over ±5σ, normalised; unit test for line-area conservation.
-  - Status / Notes:
-- [ ] **1.5** Reparameterise for identifiability (Si ≡ 1, ratios + amplitude, O fixed/excluded, 1.0–7.5 keV, continuum term).
-  - Status / Notes:
-- [ ] **1.6** Poisson/Cash fit on raw counts with background model; covariance, uncertainties, GoF, quality flag.
-  - Status / Notes:
+- [x] **1.1** Solar-spectrum model (reference flare spectrum, configurable temperature).
+  - Status / Notes: `src/asr/xrf_model.py::solar_spectrum` — isothermal bremsstrahlung, S(E) ∝ exp(−E/kT)/E, Gaunt = 1, continuum only (no flare lines). Reference kT = **1.07 keV** (single-T fit to a C3 flare measured by Ch-1 XSM, Narendranath et al. 2013 as quoted in arXiv:1305.6218). Sensitivity temperatures 0.6 keV (~7 MK, B-class) and 1.5 keV (~17 MK, M-class). Line-intensity ratios vs kT 0.6→1.5 keV (45°, mare comp.): Mg/Si 0.46→0.24, Al/Si 0.43→0.30, Ca/Si 0.028→0.29, Ti/Si 0.0008→0.022, Fe/Si 0.0004→0.092 → Ca/Ti/Fe are dominated by the assumed solar shape.
+- [x] **1.2** Rewrite primary fluorescence per PLAN §4; unit-test against hand-computed values for one element.
+  - Status / Notes: `ForwardModel.line_intensities` / vectorised `primary_fast` (Sherman integral with CS_Photo_Partial(K), ω_K, RadRate, matrix μ from oxide closure, ψ₁ = 90° − SOLARANG, ψ₂ = 90°). Kα + Kβ for Mg, Al, Si, Ca, Ti, Fe (Mg Kβ absent in xraylib). Tests (`tests/test_asr_model.py`, 13 pass): Si Kα vs independent scipy.quad Sherman integral within 1%; Q·τ_K vs xraylib CS_FluorLine within 5%; closure gives O 40–46 wt%; intensity monotonic in incidence. Grid 1.30–15 keV, ΔE = 5 eV → 0.3% integration error vs 1 eV grid; 0.08 ms/eval.
+- [x] **1.3** Secondary fluorescence: concentration-coupled, or drop with justification.
+  - Status / Notes: implemented the coupled thick-target formula (de Boer 1990) in `line_intensities(secondary=True)`; test confirms coupling (Ca secondary grows with Fe/Si). Size: sec/prim ≤ **1.3%** for all Kα lines over kT 0.6–1.5 keV and mare/highland compositions (Mg 0.5–1.2%, Al 0.8–1.2%, Ti ≤ 1.3%, Ca ≤ 0.6%, Si ≤ 0.2%). **Dropped from the fit** (30× slower); synthetic spectra are generated *with* it, so the recovery test measures the omission bias directly (see 1.7).
+- [x] **1.4** Detector response: binned Gaussian over ±5σ, normalised; unit test for line-area conservation.
+  - Status / Notes: `Detector` — erf-integrated per channel, clipped at ±5σ, renormalised; σ(E)² = σ₀² + F·w·E (F = 0.115, w = 3.68 eV). Tests: area = 1 to 1e-9 and centroid exact for 4 line energies × 2 σ₀. Efficiency: unity (no CLASS QE/filter data in the release or found in literature search) → limitation + open question. Calibration found on 2024-12 dayside stack (20,881 spectra): lines sit ~2 ch below `0.0135·ch`; linear fit to Mg/Si/Ca centroids gives **E ≈ 0.01363·ch + 0.017 keV**, FWHM ≈ 112 eV (Mg) – 157 eV (Si). Per-month calibration to be fitted in 1.8. Also: nightside background contains a strong instrumental **Al Kα** line → background must be a scaled template, not a fixed subtraction.
+- [x] **1.5** Reparameterise for identifiability (Si ≡ 1, ratios + amplitude, O fixed/excluded, 1.0–7.5 keV, continuum term).
+  - Status / Notes: `src/asr/fitter.py` — θ = (A, Mg/Si, Al/Si, Ca/Si, Ti/Si, Fe/Si, B, β): C_Si from oxide closure (fixed minor Na₂O 0.5, K₂O 0.1, MnO 0.15, Cr₂O₃ 0.2 wt%), O stoichiometric (not free). Continuum = physical scattered-solar term (Rayleigh+Compton / matrix μ) with free amplitude B. Fit window **1.15–7.5 keV** (avoids Na Kα 1.04 keV and the steep <1.1 keV excess seen in the stack).
+- [x] **1.6** Poisson/Cash fit on raw counts with background model; covariance, uncertainties, GoF, quality flag.
+  - Status / Notes: raw counts, no denoising; model = source + β × nightside-template × exposure × n_SCD/16. Cash statistic minimised by TRF on signed deviance residuals. Uncertainties = inverse Poisson Fisher matrix; correlation matrix + condition number stored. GoF z = (C − E[C])/√Var[C] with exact per-channel Poisson expectations (Kaastra 2017). Quality bits: 1 no-conv, 2 counts < 300, 4 |z| > 3, 8 ratio at bound, 16 cond > 1e4, 32 bad geometry, 64 covariance failure. ~60 ms/fit.
 - [ ] **1.7** GATE — synthetic recovery test (bias/scatter per ratio, condition numbers, cross-temperature systematic). Do not proceed until Al/Si and Mg/Si recover acceptably.
   - Status / Notes:
 - [ ] **1.8** Smoke test on one real month; check sanity ranges; diagnostic plots (high/median/low-quality fits).
@@ -140,6 +140,10 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 | Date | Task | Decision | Rationale |
 |---|---|---|---|
 | 2026-10-10 | 0.3 | Geometry: ψ₁ = 90° − SOLARANG (incidence elevation), ψ₂ = 90° (nadir, EMISNANG ≈ 0). Background scaled per spectrum by exposure × n_SCD/16. QC rejects SAT_ALT ≤ 0 and SOLARANG ≥ 90°. | Header survey; n_SCD varies in 26% of spectra. |
+| 2026-10-10 | 1.1 | Reference solar spectrum: isothermal bremsstrahlung kT = 1.07 keV (Ch-1 XSM C3 flare); sensitivity at 0.6 and 1.5 keV. Fixed before seeing any validation numbers. | Only citable flare temperature found; no XSM data locally. |
+| 2026-10-10 | 1.3 | Secondary fluorescence dropped from the fit; kept in the synthetic generator to quantify omission bias. | ≤1.3% of primary for every Kα line; 30× cost. |
+| 2026-10-10 | 1.4 | Detector efficiency = 1 (no data); per-month gain/offset/σ₀ from stacked dayside spectra, fixed in per-spectrum fits. | Single 8 s spectra cannot constrain calibration; stack shows ~2-ch offset from nominal. |
+| 2026-10-10 | 1.5 | Fit window 1.15–7.5 keV; Na and K lines not modelled (matrix only). O stoichiometric via oxide closure. | Avoids Na Kα and the <1.1 keV excess; Na/K lines are minor. |
 | 2026-10-10 | 0 | New rework code goes in `src/asr/`, outputs in gitignored `outputs/asr/`; old `src/fitting/` left intact for baseline reproduction. | Keeps the old pipeline runnable for the 0.2 baseline and for reviewers' comparison. |
 
 ## Open questions for Geetesh
