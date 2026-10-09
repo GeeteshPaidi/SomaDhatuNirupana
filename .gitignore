@@ -46,3 +46,9 @@ paper/*.out
 paper/*.bbl
 paper/*.blg
 paper/*.synctex.gz
+
+# ASR rework: never commit FITS data, rework outputs, or confidential reviews
+*.fits
+data/raw/**/*.xml
+outputs/asr/
+reviews/
