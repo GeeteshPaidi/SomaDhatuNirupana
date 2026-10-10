@@ -145,7 +145,8 @@ def make_fitter(calib, bkg, inst, kT=None):
     kT>0 -> legacy continuum-only spectrum at fixed kT (keV)."""
     det = xm.Detector(gain=calib["gain"], offset=calib["offset"], sigma0=calib["sigma0"])
     if kT is None:
-        fm = xm.ForwardModel(secondary=False, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=8.0)
+        fm = xm.ForwardModel(secondary=False, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=8.0,
+                             efficiency=xm.class_filter_transmission)
     else:
         fm = xm.ForwardModel(kT=kT, secondary=False, e_max=15, de=0.005)
     return ft.SpectrumFitter(fm, det, bkg, inst_rate=inst)

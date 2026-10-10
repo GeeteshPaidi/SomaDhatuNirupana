@@ -41,7 +41,8 @@ _G = {}
 def _fm(kT, secondary, use_solar):
     if use_solar:  # kT is a temperature in MK for the CHIANTI table
         import solar
-        return xm.ForwardModel(secondary=secondary, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=kT)
+        return xm.ForwardModel(secondary=secondary, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=kT,
+                               efficiency=xm.class_filter_transmission)
     return xm.ForwardModel(kT=kT, secondary=secondary, e_max=15, de=0.005)
 
 

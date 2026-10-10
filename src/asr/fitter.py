@@ -110,7 +110,11 @@ class SpectrumFitter:
         self.use_inst = inst_rate is not None
         self.inst_rate = (np.asarray(inst_rate, float) if self.use_inst else np.zeros(det.n_channels))[self.sel]
         self.R = det.response_matrix(fm.lines)[:, self.sel]
-        self.eff = fm.efficiency(self.E) if fm.efficiency is not None else np.ones_like(self.E)
+        # Efficiency is applied at the photon energy (line energy / fine grid),
+        # not at the channel energy, so the Al-filter edge is not smeared.
+        effn = fm.efficiency if fm.efficiency is not None else (lambda x: np.ones_like(np.atleast_1d(x), float))
+        self._effn = effn
+        self.eff_lines = effn(np.array([ln.E for ln in fm.lines]))
         self.bkg_rate = np.asarray(bkg_rate, float)[self.sel]
         self.min_counts, self.gof_z_max, self.cond_max = min_counts, gof_z_max, cond_max
         # Normalise intensities so A ~ "Si Ka counts per unit" for a reference composition.
@@ -134,6 +138,7 @@ class SpectrumFitter:
             from scipy import sparse
             self.FOLD = sparse.csr_matrix(np.array([det.line_response(x) for x in Ef])[:, self.main_sel].T * 0.005)  # (n_main, n_f)
             Eh = e[self.fine_hi]
+            self.EFF_F, self.EFF_H = effn(Ef), effn(Eh)
             self.MU_F = np.array([[xraylib.CS_Total(Z, x) for x in Ef] for Z in Zs])
             self.SIG_F = np.array([[xraylib.CS_Rayl(Z, x) + xraylib.CS_Compt(Z, x) for x in Ef] for Z in Zs])
             self.MU_H = np.array([[xraylib.CS_Total(Z, x) for x in Eh] for Z in Zs])
@@ -160,22 +165,22 @@ class SpectrumFitter:
         if self.fm.solar is None:
             mu = c @ self.MU_E
             sig = c @ self.SIG_E
-            return self.S_E * sig / (mu / s1 + mu) * self.det.gain / self.sc_norm
+            return self.S_E * self._effn(self.E) * sig / (mu / s1 + mu) * self.det.gain / self.sc_norm
         mu, sig = c @ self.MU_F, c @ self.SIG_F
-        main = self.FOLD @ (self.S_F * sig / (mu / s1 + mu))
+        main = self.FOLD @ (self.S_F * self.EFF_F * sig / (mu / s1 + mu))
         if self.n_hi_ch == 0:
             return main / self.sc_norm
         mh, sh = c @ self.MU_H, c @ self.SIG_H
         hi = np.zeros(self.n_hi_ch)
-        hi[0] = np.sum(self.S_H * sh / (mh / s1 + mh)) * 0.005
+        hi[0] = np.sum(self.S_H * self.EFF_H * sh / (mh / s1 + mh)) * 0.005
         return np.r_[main, hi] / self.sc_norm
 
     def source(self, theta, s1):
         A, r, B = theta[0], dict(zip(FIT_ELEMENTS, theta[1:6])), theta[6]
         I, comp = self.fm.primary_fast(r, s1)
-        lines = (I / self.i_norm) @ self.R
+        lines = (I * self.eff_lines / self.i_norm) @ self.R
         sc = self._scatter(comp, s1)
-        return A * self.eff * (lines + B * sc)
+        return A * (lines + B * sc)
 
     def _fixed_idx(self):
         idx = [1 + FIT_ELEMENTS.index(e) for e in self.fixed_ratios]

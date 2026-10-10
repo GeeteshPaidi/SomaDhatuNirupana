@@ -141,6 +141,9 @@ def grs_compare(ms, rng):
     stats = []
     for e in ELS:
         ok = np.isfinite(t[f"class_{e}_Si"])
+        if ok.sum() < 3:
+            stats.append({"element": e, "n": int(ok.sum()), "pearson_r": np.nan, "pearson_ci95": [np.nan, np.nan]})
+            continue
         s = corr_with_ci(t.loc[ok, f"grs_{e}_Si"].values, t.loc[ok, f"class_{e}_Si"].values, rng,
                          n_boot=2000, groups=blk[ok.values])
         s.update(element=e, min_footprints=MIN_FP, block_deg=BLOCK_DEG)
@@ -189,7 +192,7 @@ def main():
         s1 = site_s[(site_s.radius_deg == PRIMARY_RADIUS) & (site_s.element == e)]
         s2 = grs_s[grs_s.element == e]
         ok1 = len(s1) and s1.pearson_r.iloc[0] > 0 and s1.pearson_ci95.iloc[0][0] > 0
-        ok2 = len(s2) and s2.pearson_r.iloc[0] > 0 and s2.pearson_ci95.iloc[0][0] > 0
+        ok2 = len(s2) and np.isfinite(s2.pearson_r.iloc[0]) and s2.pearson_r.iloc[0] > 0             and s2.pearson_ci95.iloc[0][0] > 0
         claims[e] = {"sites_pass": bool(ok1), "grs_pass": bool(ok2), "claimed": bool(ok1 and ok2)}
     with open(os.path.join(OUT, f"claims{args.tag}.json"), "w") as f:
         json.dump(claims, f, indent=1)

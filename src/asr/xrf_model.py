@@ -83,6 +83,24 @@ def composition_from_ratios(ratios):
     return comp
 
 
+# CLASS optical-blocking filters: two layers (either side of the collimator), each
+# 0.2 um polyimide + 0.2 um Al (Narendranath et al. 2014; Pillai et al. 2021).
+FILTER_AL_UM = 0.4
+FILTER_POLYIMIDE_UM = 0.4
+RHO_AL = 2.699
+RHO_POLYIMIDE = 1.42
+
+
+def class_filter_transmission(E, al_um=FILTER_AL_UM, pi_um=FILTER_POLYIMIDE_UM):
+    """X-ray transmission of the CLASS optical-blocking filters at energies E (keV).
+    SCD quantum efficiency (depletion depth, dead layer) is not included: no
+    published curve is available."""
+    E = np.atleast_1d(np.asarray(E, float))
+    mu_al = np.array([xraylib.CS_Total(13, x) for x in E])
+    mu_pi = np.array([xraylib.CS_Total_CP("C22H10N2O5", x) for x in E])
+    return np.exp(-(mu_al * RHO_AL * al_um * 1e-4 + mu_pi * RHO_POLYIMIDE * pi_um * 1e-4))
+
+
 def solar_spectrum(E, kT=1.07):
     """Isothermal thermal-bremsstrahlung photon spectrum, Gaunt factor = 1:
     S(E) ~ exp(-E/kT)/E (arbitrary normalisation; only the shape matters,
