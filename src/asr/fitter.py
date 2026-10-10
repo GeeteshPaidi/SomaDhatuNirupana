@@ -297,7 +297,7 @@ class SpectrumFitter:
             flag |= Q_LOWCOUNTS
         if abs(z) > self.gof_z_max:
             flag |= Q_BADGOF
-        at_bound = ((th[1:6] <= 1e-6) | (th[1:6] >= RATIO_UPPER - 1e-6)) &             np.array([e not in self.fixed_ratios for e in FIT_ELEMENTS])
+        at_bound = ((th[1:6] <= 1e-3) | (th[1:6] >= RATIO_UPPER - 1e-3)) &             np.array([e not in self.fixed_ratios for e in FIT_ELEMENTS])
         for e, b in zip(FIT_ELEMENTS, at_bound):
             out[f"atbound_{e}"] = bool(b)
         if at_bound[0] or at_bound[1]:  # Mg or Al at a bound

@@ -29,6 +29,7 @@ R_MOON = 1737.4
 ELS = ["Mg", "Al"]
 Q_SOLAR_UNRELIABLE = 256
 GOES_MIN_XRSB = 1e-7
+PIN_EPS = 1e-3
 COLS = ["source_file", "month", "lat", "lon", "solarang", "sat_alt", "n_scd", "exposure", "goes_T_mk",
         "goes_xrsb", "quality", "n_counts_fit", "gof_z", "success"] + \
        [f"r_{e}" for e in ELS] + [f"sd_r_{e}" for e in ELS] + ["r_Ca", "sd_r_Ca", "gamma", "A"]
@@ -48,6 +49,15 @@ def load_fits(months_dir=None, min_counts=300, min_xrsb=GOES_MIN_XRSB):
     q = df["quality"].fillna(-1).astype(int).values
     unreliable = ~(df["goes_xrsb"].values >= min_xrsb)
     q = np.where(unreliable & (q >= 0), q | Q_SOLAR_UNRELIABLE, q)
+    # Boundary bug fix (found after the first validation, logged in TRACKER): a ratio
+    # pinned within 1e-3 of zero has no valid Fisher uncertainty (sd collapses), but the
+    # fitter's at-bound test used 1e-6. Treat r < 1e-3 (or > 4.999) for Mg/Si or Al/Si
+    # as at bound (quality bit 8).
+    pinned = np.zeros(len(df), bool)
+    for e in ELS:
+        r = df[f"r_{e}"].values
+        pinned |= np.isfinite(r) & ((r < PIN_EPS) | (r > 4.999))
+    q = np.where(pinned & (q >= 0), q | 8, q)
     df["quality_final"] = q
     df["use"] = (q == 0) & (df["n_counts_fit"].values >= min_counts)
     lat = np.vstack(df["lat"].values)

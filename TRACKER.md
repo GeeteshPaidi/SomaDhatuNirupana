@@ -98,31 +98,28 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
     - Fit speed 96 ms/spectrum single-core (tol 1e-6; identical results to 1e-8).
 ## Phase 2 — Full run (ask Geetesh before starting; ~8 h with 14 workers last time)
 
-- [ ] **2.1** Apply new selection criterion; record counts at each stage (raw → dayside → QC → fitted).
-  - Status / Notes:
-- [ ] **2.2** Full fit; save per-spectrum results with uncertainties and flags.
-  - Status / Notes: RESTARTED ~07:00 with filter transmission (v2). (`src/asr/run_all.py`, v1 started 2026-10-10 ~06:05; log `outputs/asr/run_all_log.txt`; ~25 ms/spectrum wall with 12 workers → ~7 h). To rerun after the loop: 2020/12 and 2021/02 (calibration init bug, fixed), 2022/03 and 2024/03 (no umbra exposures → fallback template added after they ran).
-- [ ] **2.3** Selection-threshold sensitivity (subset OK) and solar-temperature sensitivity.
-  - Status / Notes:
-
+- [x] **2.1** Apply new selection criterion; record counts at each stage (raw → dayside → QC → fitted).
+  - Status / Notes: `outputs/asr/maps/summary_2deg.json`: raw L1 **1,515,239** → dayside with valid geometry **1,053,989** (all fitted, no flux selection) → GOES T reliable (≥ B1) **1,017,226** → converged **1,037,841** → quality-0 mapping set **429,217** (40.7% of dayside; was 440,234 before the boundary-flag fix). Per-month quality-0 fraction ranges 2% (2021-02) to 66% (2025-02); see `run_all_log.txt`.
+- [x] **2.2** Full fit; save per-spectrum results with uncertainties and flags.
+  - Status / Notes: done, v2 (with filter): all 24 months OK (`outputs/asr/months/<YYYY_MM>/fits.parquet`, calib.json with per-month gain/offset/σ₀ and template sources). ~5.5 h wall, 12 workers. v1 (no filter) log archived.
+- [ ] **2.3** Selection-threshold sensitivity (subset is fine) and solar-temperature sensitivity.
+  - Status / Notes: count thresholds done (`summary_2deg_min*.json`, `validation/*_min*.csv`). Mapping set 429,217 / 122,552 / 10,672 for ≥300 / 1000 / 3000 counts. GRS r: Mg 0.60 / 0.59 / 0.62, Al 0.35 / 0.38 / 0.40 (n pixels 1790 / 1533 / 134). Median Mg/Si 0.231 / 0.250 / 0.247, Al/Si 0.816 / 0.785 / 0.855. B3 GOES cut: 428,915 spectra, results unchanged. Solar-T ×0.8 / ×1.2 refits (2024-12, 2025-06, 2025-12; 10k each) RUNNING.
 ## Phase 3 — Maps
 
-- [ ] **3.1** Rebuild element/Si maps; observed vs smoothed/infilled coverage; fitted vs all footprints; equal-area stats.
-  - Status / Notes:
-- [ ] **3.2** Quality layers per map: observation count, mean fit uncertainty, infill mask.
-  - Status / Notes:
-- [ ] **3.3** State effective resolution honestly (footprint scale, not grid spacing).
-  - Status / Notes:
-
+- [x] **3.1** Rebuild element/Si maps; observed vs smoothed/infilled coverage; fitted vs all footprints; equal-area stats.
+  - Status / Notes: `src/asr/maps.py` → `outputs/asr/maps/maps_2deg.npz`, `map_{Mg,Al}_Si_2deg.png`. Observed coverage (no smoothing or infill anywhere): all dayside footprints 100% of 2° cells / 100% of area; quality-0 set 99.99% cells / 100% area; ≥5 footprints in cells covering 99.0% of area. Footprint rasterised from 4 corners (5×5 samples).
+- [x] **3.2** Quality layers per map: observation count, mean fit uncertainty, infill mask.
+  - Status / Notes: count, SE of weighted mean, weighted scatter per cell (npz + figure panels). No infill is used, so the infill mask is trivially empty (stated in paper).
+- [x] **3.3** State effective resolution honestly (footprint scale, not grid spacing).
+  - Status / Notes: footprint corners span median 25.3 km (across track) × 37.2 km (along track; FOV + 8 s motion); 5–95%: 20.6–31.0 × 32.0–42.7 km. Collimator FWHM 12.5 km (Pillai et al. 2021). Maps at 2° (61 km). In paper §Mapping.
 ## Phase 4 — Validation
 
-- [ ] **4.1** Apollo/Luna (9 sites): reference table with sources; pre-fixed radius sensitivity (1°, 2°, 5°); bootstrap 95% CIs; leave-one-site-out; propagated per-site uncertainties.
-  - Status / Notes:
-- [ ] **4.2** Lunar Prospector GRS comparison (common 5° grid; Fe, Ti, Al, Ca, Mg vs X/Si; Spearman + Pearson; block bootstrap; scatter plots).
-  - Status / Notes:
-- [ ] **4.3** Decide which elements the paper claims, based only on 4.1 + 4.2. Log decision.
-  - Status / Notes:
-
+- [x] **4.1** Apollo/Luna (9 sites): reference table with sources; pre-fixed radius sensitivity (1°, 2°, 5°); bootstrap 95% CIs; leave-one-site-out; propagated per-site uncertainties.
+  - Status / Notes: `src/asr/validate_asr.py` → `outputs/asr/validation/sites_{table,stats}.csv`. 2° (primary): Mg/Si r = 0.37 [−0.22, 0.88], LOO 0.16–0.50; Al/Si r = 0.43 [−0.08, 0.96], Spearman 0.68 (p = 0.04), LOO 0.30–0.71; RMSE Mg 0.061, Al 0.183; bias Mg +0.046, Al +0.100. 1°: Mg −0.68, Al 0.23. 5°: Mg 0.00, Al −0.09. Per-site SEs are tiny (0.005–0.014) compared with the site-to-site spread, so the scatter is systematic (mixing, footprint ≫ landing-site scale, regional heterogeneity), not statistical. **Neither passes** the pre-registered CI criterion. v1 (pre-fix) numbers archived (`*_v1_prereg.csv`): 2° Mg 0.38, Al 0.44.
+- [x] **4.2** Lunar Prospector GRS comparison (common 5° grid; Fe, Ti, Al, Ca, Mg vs X/Si; Spearman + Pearson; block bootstrap; scatter plots).
+  - Status / Notes: PDS LP-L-GRS-5-ELEM-ABUNDANCE-V1.0 5° equal-area (1,790 pixels, all with ≥20 CLASS footprints). Block bootstrap 20° blocks. **Mg/Si r = 0.60 [0.54, 0.65], ρ = 0.61. Al/Si r = 0.35 [0.26, 0.44], ρ = 0.37** (v1 before the boundary fix: 0.21 [0.13, 0.28]). Fe/Ti/Ca not compared: not products (fixed or unconstrained). `validation_scatter.png`.
+- [x] **4.3** Decide which elements the paper claims, based only on 4.1 + 4.2. Log decision.
+  - Status / Notes: per the pre-registered rule, **no element is "claimed" as validated**: both pass GRS, both fail the 9-site CI test. Paper framing: Mg/Si and Al/Si are presented as relative maps whose large-scale pattern agrees with GRS (Mg strongly, Al moderately). The landing-site test is reported as inconclusive (n = 9, power-limited), without changing radius or thresholds. Ca/Ti/Fe explicitly not retrievable without XSM.
 ## Phase 5 — Paper rewrite (Elsevier `elsarticle`, ASR)
 
 - [ ] **5.1** Check current ASR Guide for Authors; record requirements here.
@@ -176,6 +173,8 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 | 2026-10-10 | 2 | GOES-16 used to fill GOES-18 gaps in 2024–2025 (24,694 minutes). Cross-check over 1–15 Jun 2024 (20,145 minutes ≥ B1): median T16/T18 = 1.005 (16–84%: 0.991–1.030), XRS-B ratio 1.002. | GOES-18 good-minute coverage only 80% in 2024-03 and 85% in 2024-04. |
 | 2026-10-10 | 1.4 / 2 | **Detector efficiency = published CLASS optical-blocking filter transmission**: 2 layers × (0.2 µm polyimide + 0.2 µm Al) = 0.4 µm Al + 0.4 µm polyimide (Narendranath et al. 2014; Pillai et al. 2021). Applied at photon energy (lines, scatter fine grid). Transmission: Mg Kα 0.858, Al Kα 0.908, Si Kα 0.691, Ca Kα 0.949. SCD QE is still not modelled (no published curve). Full run v1 (no filter) stopped at 2024-11 and restarted; v1 log kept as `run_all_log_v1_nofilter.txt`. | Published instrument parameter, found via literature search after Q1. Not tuned: without it Al/Si is inflated ×1.31 and Mg/Si ×1.24. Smoke test after the change: Mg/Si median 0.23, Al/Si 0.83. |
 | 2026-10-10 | 1.8 | Instrumental Al vs SOLARANG (`paper_asr/figures/fig_background`): ~0.5 c/s at 90–93°, 30–100 c/s at 95–109°, drops in umbra → needs the Sun behind the spacecraft; expected small on the dayside, consistent with dayside γ ≈ 0. γ stays free. | Data. |
+| 2026-10-10 | 3/4 | **Post-validation bug fix (disclosed):** the at-bound threshold for Mg/Si, Al/Si raised from 1e-6 to 1e-3 (fitter + maps.py). 254 Al/Si fits pinned at ~1.5e-5 had collapsed Fisher SDs (<1e-3) and carried 93% of all Al/Si inverse-variance weight. Pre-fix results archived as `*_v1_prereg.*` and reported in the paper alongside the fixed ones. | Defect in uncertainty validity at a boundary (Fisher invalid), visible in the map/GRS scatter as a spurious Al/Si ≈ 0 population; not a parameter tuned toward agreement. Mg unaffected (top 0.1% fits carry 2.7% of the weight). |
+| 2026-10-10 | 4.3 | Claim decision per pre-registered rule: neither element meets "both tests"; paper reports GRS agreement and inconclusive site test without changing choices. | Honesty rule. |
 | 2026-10-10 | 0 | New rework code goes in `src/asr/`, outputs in gitignored `outputs/asr/`; old `src/fitting/` left intact for baseline reproduction. | Keeps the old pipeline runnable for the 0.2 baseline and for reviewers' comparison. |
 
 ## Open questions for Geetesh
