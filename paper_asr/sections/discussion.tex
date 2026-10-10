@@ -19,7 +19,7 @@ On the dayside the fitted amplitude is usually zero. A month-averaged nightside 
 
 \subsection{Limitations}\label{sec:limitations}
 \begin{enumerate}
-\item \emph{No measured solar spectrum.} The solar spectrum is isothermal at the GOES temperature. The resulting systematic on Mg/Si is about $-15$ to $+35\%$ for $\pm$20--30\% temperature errors, and Al/Si is less affected (\cref{sec:synthetic}). Ca/Si, Ti/Si and Fe/Si are not retrievable.
+\item \emph{No measured solar spectrum.} The solar spectrum is isothermal at the GOES temperature. In synthetic tests, temperature errors of $+30$\% and $-20$\% bias Mg/Si by \SynHotMg\% and \SynColdMg\%, and Al/Si by \SynHotAl\% and \SynColdAl\%. Scaling the GOES temperature of real data by 0.8 and 1.2 changes Mg/Si by \TsensMgLo\% and \TsensMgHi\% (\cref{sec:synthetic}). Ca/Si, Ti/Si and Fe/Si are not retrievable.
 \item \emph{Relative, not absolute.} The products are weight ratios to Si. No absolute calibration is attempted, and the amplitude $A$ absorbs the solar flux, area and geometry.
 \item \emph{Detector efficiency.} The published filter transmission is applied. The SCD quantum efficiency and any surface dead layer are not modelled, because no curve is published. This mainly affects the Si line relative to Mg and Al, and probably contributes to the high median Al/Si.
 \item \emph{Physical effects not modelled.} Particle-size and roughness effects, phase-angle dependence beyond the plane-parallel geometry, and the angular dependence of scattering are not modelled.

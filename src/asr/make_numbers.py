@@ -38,6 +38,12 @@ def ci(s):
     return f"[{v[0]:.2f}, {v[1]:.2f}]".replace("-", "$-$")
 
 
+def sgn(x):
+    """Signed integer percent for LaTeX: 0 has no sign, minus as $-$."""
+    v = int(round(x))
+    return "0" if v == 0 else (f"+{v}" if v > 0 else f"$-${-v}")
+
+
 def header_numbers():
     h = pd.read_csv(os.path.join(A, "header_survey.csv"))
     put("NHeaderSample", comma(len(h)))
@@ -167,7 +173,7 @@ def synthetic_numbers():
                  " & ".join(f"{int(x):,}" for x in s.si_counts) + "\\\\\n\\midrule\n")
         for e in ["Mg", "Al", "Ca"]:
             fo.write(f"{e}/Si bias / scatter (\\%) & " + " & ".join(
-                f"{100*b:+.0f} / {100*c:.0f}" for b, c in zip(s[f'{e}_bias_med'], s[f'{e}_scatter_rmad'])) + "\\\\\n")
+                f"{sgn(100*b)} / {100*c:.0f}" for b, c in zip(s[f'{e}_bias_med'], s[f'{e}_scatter_rmad'])) + "\\\\\n")
             fo.write(f"{e}/Si pull width & " + " & ".join(f"{x:.2f}" for x in s[f'{e}_pull_std']) + "\\\\\n")
         fo.write("Quality-0 fraction & " + " & ".join(f"{x:.2f}" for x in s.frac_quality0) + "\\\\\n")
         fo.write("\\bottomrule\n\\end{tabular}\n")
@@ -177,7 +183,7 @@ def synthetic_numbers():
             s2 = pd.read_csv(f2)
             for e in ["Mg", "Al"]:
                 lo, hi = 100 * s2[f"{e}_bias_med"].min(), 100 * s2[f"{e}_bias_med"].max()
-                put(f"Syn{nm}{e}", f"{lo:+.0f} to {hi:+.0f}".replace("-", "$-$"))
+                put(f"Syn{nm}{e}", f"{sgn(lo)} to {sgn(hi)}")
 
 
 def validation_numbers():

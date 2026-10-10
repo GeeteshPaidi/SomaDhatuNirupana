@@ -85,7 +85,7 @@ def generate_counts(G, th, s1, exposure=8.0, n_scd=16, rng=None, secondary=True)
     else:
         I, _ = G.fm.primary_fast(r, s1)
     comp = xm.composition_from_ratios(r)
-    src = th[0] * G.eff * ((I / G.i_norm) @ G.R + th[6] * G._scatter(comp, s1))
+    src = th[0] * ((I * G.eff_lines / G.i_norm) @ G.R + th[6] * G._scatter(comp, s1))
     bk = G.background_counts(exposure, n_scd)
     m = src + th[7] * bk[0] + th[8] * bk[1]
     counts = np.zeros(G.det.n_channels)
