@@ -32,8 +32,8 @@ Each reviewer concern (as summarised in PLAN.md §2) is mapped to what changed, 
 
 | # | Concern | Response | Where |
 |---|---|---|---|
-| V1 | Only Al/Si validated (r = 0.74, n = 9); 5° radius huge; no CIs; no LOO. | Radii 1/2/5° pre-declared (2° primary), bootstrap 95% CIs, leave-one-out, per-site SEs. Result reported honestly: neither element passes the 9-site test (Mg r = 0.37, Al r = 0.43, CIs include 0). The old r = 0.74 was not reproduced and was not chased. | validation.tex §Landing sites, Table sites |
-| V2 | Needs comparison with an established orbital product. | Lunar Prospector GRS (Prettyman et al. 2006), 1,790 equal-area 5° pixels, 20° block bootstrap: Mg/Si r = 0.60 [0.54, 0.65], Al/Si r = 0.35 [0.26, 0.44]; stable under threshold sensitivity. | validation.tex §GRS, Fig. validation |
+| V1 | Only Al/Si validated (r = 0.74, n = 9); 5° radius huge; no CIs; no LOO. | Radii 1/2/5° pre-declared (2° primary), bootstrap 95% CIs, leave-one-out, per-site SEs. Result reported honestly: neither element passes the pre-registered 9-site test (Mg r = 0.37, Al r = 0.43, CIs include 0). Diagnostics show the test itself is weak: GRS scores −0.11 / −0.34 on it. Post hoc, Al/Si in γ≈0 spectra reaches r = 0.80 [0.55, 0.97] at 2°. The old r = 0.74 was not chased. | validation.tex §Landing sites, Table sites |
+| V2 | Needs comparison with an established orbital product. | Lunar Prospector GRS (Prettyman et al. 2006), 1,790 equal-area 5° pixels, 20° block bootstrap: Mg/Si r = 0.60 [0.54, 0.65], Al/Si r = 0.35 [0.26, 0.44]; stable under threshold sensitivity. Old pipeline on the same pixels: 0.48 / 0.19. Mg/Si is near its noise ceiling (0.77); Al/Si is limited by the instrumental-Al degeneracy (post hoc γ≈0: r = 0.72). | validation.tex §GRS, Fig. validation |
 
 ## Super-resolution
 

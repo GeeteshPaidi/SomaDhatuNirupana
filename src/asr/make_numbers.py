@@ -261,9 +261,41 @@ def tsens_numbers():
                 N[f"Tsens{e}{nm}"] = N[f"Tsens{e}{nm}"].replace("-", "$-$")
 
 
+def diag_numbers():
+    V = os.path.join(A, "validation")
+    d = json.load(open(os.path.join(V, "score_diagnostics.json")))
+    put("GrsSitesMg", d["grs_vs_sites_r"]["Mg"], ".2f")
+    put("GrsSitesAl", d["grs_vs_sites_r"]["Al"], ".2f")
+    for e in ["Mg", "Al"]:
+        put(f"Rel{e}", d[f"class_reliability_{e}"], ".2f")
+        put(f"RelGrs{e}", d[f"grs_reliability_{e}"], ".2f")
+        put(f"Ceil{e}", d[f"class_grs_ceiling_r_{e}"], ".2f")
+        put(f"OldGrs{e}", d[f"old_pipeline_vs_grs_r_{e}"], ".2f")
+    m = json.load(open(os.path.join(V, "alt_median_posthoc.json")))
+    put("MedGrsMg", m["median_Mg_grs_r"], ".2f")
+    put("MedGrsAl", m["median_Al_grs_r"], ".2f")
+    put("MedRelAl", m["median_Al_reliability"], ".2f")
+    g0 = json.load(open(os.path.join(V, "gamma0_posthoc.json")))
+    put("GzN", comma(g0["n"]))
+    put("GzPct", 100 * g0["n"] / int(N["NMapped"].replace("{,}", "")), ".0f")
+    for e in ["Mg", "Al"]:
+        put(f"Gz{e}R", g0[e]["grs_r"], ".2f")
+        N[f"Gz{e}CI"] = ci(g0[e]["grs_ci95"])
+        put(f"Gz{e}Rel", g0[e]["reliability"], ".2f")
+        put(f"Gz{e}Med", g0[e]["median"], ".2f")
+    ss = pd.read_csv(os.path.join(V, "sites_stats_gamma0_posthoc.csv"))
+    for e in ["Mg", "Al"]:
+        r = ss[(ss.radius_deg == 2.0) & (ss.element == e)].iloc[0]
+        put(f"GzSite{e}R", r.pearson_r, ".2f")
+        N[f"GzSite{e}CI"] = ci(r.pearson_ci95)
+    for e, rad in [("Al", 1.0), ("Al", 5.0), ("Mg", 1.0), ("Mg", 5.0)]:
+        r = ss[(ss.radius_deg == rad) & (ss.element == e)].iloc[0]
+        put(f"GzSite{e}R{'One' if rad == 1 else 'Five'}", r.pearson_r, ".2f")
+
+
 def main():
     for fn in [header_numbers, stage_numbers, calib_numbers, background_numbers, solar_numbers,
-               synthetic_numbers, validation_numbers, tsens_numbers]:
+               synthetic_numbers, validation_numbers, tsens_numbers, diag_numbers]:
         try:
             fn()
         except Exception as ex:  # noqa: BLE001
