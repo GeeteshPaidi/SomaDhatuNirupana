@@ -102,8 +102,8 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
   - Status / Notes: `outputs/asr/maps/summary_2deg.json`: raw L1 **1,515,239** → dayside with valid geometry **1,053,989** (all fitted, no flux selection) → GOES T reliable (≥ B1) **1,017,226** → converged **1,037,841** → quality-0 mapping set **429,217** (40.7% of dayside; was 440,234 before the boundary-flag fix). Per-month quality-0 fraction ranges 2% (2021-02) to 66% (2025-02); see `run_all_log.txt`.
 - [x] **2.2** Full fit; save per-spectrum results with uncertainties and flags.
   - Status / Notes: done, v2 (with filter): all 24 months OK (`outputs/asr/months/<YYYY_MM>/fits.parquet`, calib.json with per-month gain/offset/σ₀ and template sources). ~5.5 h wall, 12 workers. v1 (no filter) log archived.
-- [ ] **2.3** Selection-threshold sensitivity (subset is fine) and solar-temperature sensitivity.
-  - Status / Notes: count thresholds done (`summary_2deg_min*.json`, `validation/*_min*.csv`). Mapping set 429,217 / 122,552 / 10,672 for ≥300 / 1000 / 3000 counts. GRS r: Mg 0.60 / 0.59 / 0.62, Al 0.35 / 0.38 / 0.40 (n pixels 1790 / 1533 / 134). Median Mg/Si 0.231 / 0.250 / 0.247, Al/Si 0.816 / 0.785 / 0.855. B3 GOES cut: 428,915 spectra, results unchanged. Solar-T ×0.8 / ×1.2 refits (2024-12, 2025-06, 2025-12; 10k each) RUNNING.
+- [x] **2.3** Selection-threshold sensitivity (subset is fine) and solar-temperature sensitivity.
+  - Status / Notes: count thresholds done (`summary_2deg_min*.json`, `validation/*_min*.csv`). Mapping set 429,217 / 122,552 / 10,672 for ≥300 / 1000 / 3000 counts. GRS r: Mg 0.60 / 0.59 / 0.62, Al 0.35 / 0.38 / 0.40 (n pixels 1790 / 1533 / 134). Median Mg/Si 0.231 / 0.250 / 0.247, Al/Si 0.816 / 0.785 / 0.855. B3 GOES cut: 428,915 spectra, results unchanged. Solar-T ×0.8 / ×1.2 refits (2024-12, 2025-06, 2025-12; 10k each, both-quality-0 pairs): median Mg/Si change −24% / +26%, Al/Si −8% / +7%.
 ## Phase 3 — Maps
 
 - [x] **3.1** Rebuild element/Si maps; observed vs smoothed/infilled coverage; fitted vs all footprints; equal-area stats.
@@ -130,22 +130,22 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
   - Status / Notes: new manuscript `paper_asr/` contains no SR content (sections, figures, tables, abstract, conclusions). Old `paper/` left untouched as the TGRS record.
 - [x] **5.4** Rewrite methods to match new code exactly.
   - Status / Notes: `sections/{data,model,fitting,synthetic,mapping}.tex`. Equations correspond to `xrf_model.py` (closure, primary, scatter, response), `fitter.py` (model counts, Cash, Fisher, GoF, flags) and `maps.py`.
-- [ ] **5.5** Results: pipeline stats, multiple fit examples, synthetic recovery table, sensitivity tests, maps + quality layers, validation tables.
-  - Status / Notes: written (`results.tex`, `validation.tex`); all numbers via `numbers.tex`. Pending: synthetic table rerun with the filter (final config) and the solar-T ×0.8/×1.2 numbers (running).
+- [x] **5.5** Results: pipeline stats, multiple fit examples, synthetic recovery table, sensitivity tests, maps + quality layers, validation tables.
+  - Status / Notes: written (`results.tex`, `validation.tex`); all numbers via `numbers.tex`. Final synthetic gate (with filter, `summary_gen*_fit5.0_final.csv`): Mg/Al |bias| ≤ 3%, pulls 0.78–1.21; T error +30% → Mg −22…−14%, Al +7…+11%; −20% → Mg +31…+35%, Al 0…+4%; Ca/Si bias up to +51% with 52–156% scatter even at the right T.
 - [x] **5.6** Limitations section (no XSM, relative units, footprint resolution, small n).
   - Status / Notes: `discussion.tex` §Limitations (6 items, incl. SCD QE, flare exclusion by GoF noted in results).
 - [x] **5.7** TGRS minor points: 24 archives + non-contiguity; rename "Flux Integration"; Fig. 1 caption/legend; 1024 vs 2048 channels; gain/calibration handling.
   - Status / Notes: archives and non-contiguity in data.tex §CLASS; "Flux Integration" and the old Fig. 1 no longer exist (no denoising stage); 1024 vs 2048 explained (all files 2048, 1024 branch unused); gain fitted per month (Table months, model.tex §Detector).
 - [ ] **5.8** Highlights, cover letter draft, data availability statement (new Zenodo release → Open questions, no publish without approval).
   - Status / Notes: highlights.tex, `paper_asr/cover_letter.tex`, data_availability.tex (GitHub + "archived on Zenodo upon acceptance"). Zenodo v2.0.0 → Open question 7.
-- [ ] **5.9** Consistency check: script dumps headline numbers to JSON; cross-check against text.
-  - Status / Notes: `src/asr/make_numbers.py` → `outputs/asr/headline_numbers.json` + `paper_asr/numbers.tex`; text uses only these macros, so values cannot drift. Remaining: no "??" placeholders in the final PDF.
+- [x] **5.9** Consistency check: script dumps headline numbers to JSON; cross-check against text.
+  - Status / Notes: `src/asr/make_numbers.py` → `outputs/asr/headline_numbers.json` + `paper_asr/numbers.tex`; text uses only these macros, so values cannot drift. Verified: no "??" in numbers.tex or the compiled PDF (commit b34a894).
 ## Phase 6 — Final review
 
 - [x] **6.1** Hostile-reviewer pass; write `RESPONSE_MAP.md`.
   - Status / Notes: `RESPONSE_MAP.md` maps every TGRS concern (P1–3, F1–5, D1–3, V1–2, S1) plus the self-found issues.
 - [ ] **6.2** Compile PDF; check figures, references, template compliance.
-  - Status / Notes:
+  - Status / Notes: `paper_asr/main.pdf` compiles cleanly (27 pp elsarticle preprint, no undefined refs). Remaining: verify the 4 bib entries marked VERIFY (de Boer 1990, Narendranath 2014, 2020, Mithun 2020); confirm the abstract limit in Editorial Manager.
 - [ ] **6.3** Hand off to Geetesh: summary, final PDF, open questions.
   - Status / Notes:
 
