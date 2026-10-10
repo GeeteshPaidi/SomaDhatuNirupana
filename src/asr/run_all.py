@@ -17,11 +17,13 @@ def main():
     extra = sys.argv[1:]
     months = sorted("/".join(p.replace("\\", "/").split("/")[-2:])
                     for p in glob.glob(os.path.join(ROOT, "data", "raw", "*", "*")) if os.path.isdir(p))
-    log = open(os.path.join(ROOT, "outputs", "asr", "run_all_log.txt"), "a")
+    logname = "run_all_log_v3.txt" if "--gamma_zero" in extra else "run_all_log.txt"
+    log = open(os.path.join(ROOT, "outputs", "asr", logname), "a")
     for m in months:
-        out = os.path.join(ROOT, "outputs", "asr", "months", m.replace("/", "_"))
+        root = extra[extra.index("--out_root") + 1] if "--out_root" in extra else os.path.join(ROOT, "outputs", "asr", "months")
+        out = os.path.join(root, m.replace("/", "_"))
         cj = os.path.join(out, "calib.json")
-        if not extra and os.path.exists(cj) and "n_fitted" in json.load(open(cj)) \
+        if os.path.exists(cj) and "n_fitted" in json.load(open(cj)) \
                 and json.load(open(cj)).get("n_fitted") == json.load(open(cj)).get("n_dayside"):
             log.write(f"skip {m}\n")
             continue

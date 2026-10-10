@@ -140,7 +140,7 @@ def calibrate(net, gain0=0.0135, offset0=0.0):
 _F = None
 
 
-def make_fitter(calib, bkg, inst, kT=None):
+def make_fitter(calib, bkg, inst, kT=None, gamma_zero=False):
     """kT=None -> CHIANTI table with per-spectrum GOES temperature;
     kT>0 -> legacy continuum-only spectrum at fixed kT (keV)."""
     det = xm.Detector(gain=calib["gain"], offset=calib["offset"], sigma0=calib["sigma0"])
@@ -149,12 +149,13 @@ def make_fitter(calib, bkg, inst, kT=None):
                              efficiency=xm.class_filter_transmission)
     else:
         fm = xm.ForwardModel(kT=kT, secondary=False, e_max=15, de=0.005)
-    return ft.SpectrumFitter(fm, det, bkg, inst_rate=inst)
+    # gamma_zero (v3): instrumental component fixed to 0 on the dayside
+    return ft.SpectrumFitter(fm, det, bkg, inst_rate=None if gamma_zero else inst)
 
 
-def _init(kT, calib, bkg, inst):
+def _init(kT, calib, bkg, inst, gamma_zero=False):
     global _F
-    _F = make_fitter(calib, bkg, inst, kT)
+    _F = make_fitter(calib, bkg, inst, kT, gamma_zero)
 
 
 def _fit(r):
@@ -172,6 +173,7 @@ def main():
     ap.add_argument("--T_scale", type=float, default=1.0,
                     help="sensitivity: multiply the GOES temperature by this factor")
     ap.add_argument("--T_fixed", type=float, default=None, help="sensitivity: fixed CHIANTI T (MK)")
+    ap.add_argument("--gamma_zero", action="store_true", help="v3: fix the instrumental amplitude to 0")
     ap.add_argument("--workers", type=int, default=12)
     ap.add_argument("--limit", type=int, default=None, help="max dayside spectra to fit (random subset)")
     ap.add_argument("--out_root", default=os.path.join(ROOT, "outputs", "asr", "months"))
@@ -199,7 +201,7 @@ def main():
     # Fallback: months without enough umbra / sunlit nightside exposures use the
     # 2024-12 template shapes (3,606 umbra, 16,232 sunlit exposures); beta and
     # gamma are fitted per spectrum, so only the shapes are borrowed.
-    fb = os.path.join(args.out_root, "2024_12")
+    fb = os.path.join(ROOT, "outputs", "asr", "months", "2024_12")
     binfo["bkg_template_source"] = tag
     binfo["inst_template_source"] = tag
     if binfo["n_night_shadow"] < 100 and tag != "2024_12":
@@ -233,7 +235,7 @@ def main():
             r["T_fit"] = args.T_fixed if args.T_fixed is not None else t * args.T_scale
     calib["frac_with_goes"] = float(np.mean(np.isfinite(T))) if len(T) else 0.0
     t1 = time.perf_counter()
-    with Pool(args.workers, initializer=_init, initargs=(args.kT, calib, bkg, inst)) as p:
+    with Pool(args.workers, initializer=_init, initargs=(args.kT, calib, bkg, inst, args.gamma_zero)) as p:
         res = list(p.imap(_fit, day, chunksize=16))
     fit_s = time.perf_counter() - t1
     meta = pd.DataFrame([{k: v for k, v in r.items() if k not in ("counts", "T_fit")} for r in day])
