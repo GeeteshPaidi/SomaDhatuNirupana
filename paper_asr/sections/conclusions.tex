@@ -1,0 +1,10 @@
+\section{Conclusions}\label{sec:conclusions}
+
+We have built a CLASS processing chain from public data only. It combines a simplified fundamental-parameter model, a CHIANTI solar spectrum at the GOES temperature of each exposure, the published filter transmission, a two-template background model and a Poisson likelihood fit with per-spectrum uncertainties and quality flags. Applied to \NRawFiles{} Level-1 exposures from \NMonths{} monthly archives, it gives \NMapped{} quality-controlled spectra and global 2\textdegree{} maps of Mg/Si and Al/Si with complete observed coverage. The main findings are:
+\begin{enumerate}
+\item Element/Si ratios depend strongly on the incident solar spectrum. Solar line emission carries most of the flux that excites Mg, Al and Si, and an isothermal spectrum at the GOES temperature brings the retrieved Mg/Si into the lunar range.
+\item CLASS spectra contain a solar-driven instrumental Al K$\alpha$ component when the spacecraft is sunlit. It should be modelled separately from the particle background rather than subtracted as part of a mean nightside spectrum.
+\item Without a measured solar spectrum, only Mg/Si and Al/Si can be recovered. Ca/Si, Ti/Si and Fe/Si are dominated by solar-spectrum systematics.
+\item The large-scale Mg/Si and Al/Si patterns agree with Lunar Prospector GRS ($r=\GrsMgR$ and $\GrsAlR$). A nine-site landing-site test is inconclusive at this footprint size.
+\end{enumerate}
+The code, per-spectrum results and maps are public. The most valuable next step is to replace the GOES-isothermal spectrum with simultaneous Chandrayaan-2 XSM spectra, which the model accepts without modification.

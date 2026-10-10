@@ -1,0 +1,47 @@
+\section{Validation}\label{sec:validation}
+
+All validation choices were fixed and logged before the first comparison:
+\begin{itemize}
+\item the matching radii (1, 2 and 5\textdegree, with 2\textdegree{} primary);
+\item the statistics (Pearson and Spearman coefficients with bootstrap 95\% confidence intervals, leave-one-site-out ranges, and spatial block bootstrap for GRS);
+\item the criterion for claiming an element as validated: Pearson $r>0$ with a 95\% confidence interval excluding zero in both the landing-site and GRS tests.
+\end{itemize}
+One defect was found after the first comparison and corrected; it is described at the end of this section, and both sets of numbers are reported.
+
+\subsection{Landing sites}\label{sec:sites}
+\Cref{tab:sites} lists the returned-soil ratios and the CLASS weighted means within 2\textdegree{} (\SiteFpMin--\SiteFpMax{} footprints per site).
+\begin{itemize}
+\item \emph{Mg/Si, 2\textdegree:} $r=\SiteMgTwoR$ (95\% CI \SiteMgTwoCI), leave-one-out range \SiteMgTwoLooLo--\SiteMgTwoLooHi, RMSE \SiteMgTwoRmse, bias \SiteMgTwoBias.
+\item \emph{Al/Si, 2\textdegree:} $r=\SiteAlTwoR$ (\SiteAlTwoCI), Spearman $\rho=\SiteAlTwoRho$ ($p=\SiteAlTwoRhoP$), leave-one-out range \SiteAlTwoLooLo--\SiteAlTwoLooHi, RMSE \SiteAlTwoRmse, bias \SiteAlTwoBias.
+\item \emph{1\textdegree:} Mg/Si $r=\SiteMgOneR$, Al/Si $r=\SiteAlOneR$.
+\item \emph{5\textdegree:} Mg/Si $r=\SiteMgFiveR$, Al/Si $r=\SiteAlFiveR$.
+\end{itemize}
+The CLASS site means have small statistical errors (\cref{tab:sites}). Their scatter about the soil values is therefore systematic. Footprints of $25\times37$\,km average over terrain far larger than the sampled landing sites, several sites lie on mare--highland contacts (Apollo 15, 16, 17; Luna 20), and the instability of $r$ with radius is what one expects for nine points under these conditions. No element meets the pre-registered landing-site criterion. With $n=9$, a 95\% interval excludes zero only for $r\gtrsim0.67$.
+
+\begin{table}[t]
+\centering
+\caption{Landing-site validation at 2\textdegree{} radius: returned-soil weight ratios \citep{Heiken1991} and CLASS weighted means $\pm$ standard error.}\label{tab:sites}
+\input{tables/sites}
+\end{table}
+
+\subsection{Lunar Prospector GRS}\label{sec:grs}
+On the 5\textdegree{} equal-area GRS pixels, all \GrsMgN{} of which contain at least 20 CLASS footprints:
+\begin{itemize}
+\item \emph{Mg/Si:} $r=\GrsMgR$ (block-bootstrap 95\% CI \GrsMgCI; Spearman $\rho=\GrsMgRho$);
+\item \emph{Al/Si:} $r=\GrsAlR$ (\GrsAlCI; $\rho=\GrsAlRho$).
+\end{itemize}
+Both pass the GRS criterion (\cref{fig:validation}). The correlations are stable under the count-threshold sensitivity test: Mg/Si $r=\GrsMgR$, \GrsMgRMinK, \GrsMgRMinKKK{} and Al/Si $r=\GrsAlR$, \GrsAlRMinK, \GrsAlRMinKKK{} for thresholds of 300, 1000 and 3000 counts (\NMapped, \NMappedMinK{} and \NMappedMinKKK{} spectra). The GRS Mg and Al abundances themselves carry substantial model-dependent uncertainty \citep{Prettyman2006}, so these correlations are lower bounds on the agreement achievable.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_validation.pdf}
+\caption{Top: CLASS ratios within 2\textdegree{} of the landing sites against returned-soil ratios. Bottom: CLASS against Lunar Prospector GRS ratios on 5\textdegree{} equal-area pixels.}\label{fig:validation}
+\end{figure}
+
+\subsection{Disclosed post-validation correction}\label{sec:fix}
+The first comparison produced a population of Al/Si values near zero. These were 254 fits (0.06\% of the mapping set) in which the instrumental component had absorbed the Al line. Their Al/Si estimates of $\sim10^{-5}$ lay just above the boundary threshold of $10^{-6}$ used to flag pinned parameters. A Fisher-matrix uncertainty is meaningless at a boundary, and theirs had collapsed below $10^{-3}$, so these fits carried 93\% of the total inverse-variance weight. Raising the boundary threshold to $10^{-3}$, below any lunar Mg/Si or Al/Si, removes them.
+
+The pre-correction results were GRS Al/Si $r=\GrsAlRvOne$ (\GrsAlCIvOne), Mg/Si unchanged, and landing-site correlations within 0.02 of the values above. We regard this as a bug fix, not a tuning step, but report it so that readers can judge.
+
+\subsection{Outcome}
+Under the pre-registered rule, neither element is claimed as validated: both pass the GRS test, and both fail the nine-site test, which has little statistical power at this footprint size. We therefore present Mg/Si and Al/Si as relative maps whose large-scale pattern agrees with an independent orbital data set, strongly for Mg/Si and moderately for Al/Si, and we make no claim of site-level accuracy.

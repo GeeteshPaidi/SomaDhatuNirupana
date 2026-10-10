@@ -54,3 +54,12 @@ outputs/asr/
 reviews/
 data/goes/
 data/grs/
+
+# ASR manuscript build artefacts
+paper_asr/*.aux
+paper_asr/*.log
+paper_asr/*.out
+paper_asr/*.bbl
+paper_asr/*.blg
+paper_asr/*.spl
+paper_asr/*.synctex.gz

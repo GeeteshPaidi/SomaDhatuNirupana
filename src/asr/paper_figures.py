@@ -107,8 +107,59 @@ def fig_goes():
     save(fig, "fig_goes")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and len(sys.argv) == 1:
     fig_solar_spectra()
     fig_background()
     fig_goes()
     print("figures ->", FIG)
+
+
+def fig_maps(res=2):
+    d = np.load(os.path.join(ROOT, "outputs", "asr", "maps", f"maps_{res}deg.npz"))
+    ext = [-180, 180, -90, 90]
+    fig, axes = plt.subplots(3, 2, figsize=(7.2, 7.0))
+    for j, (e, lo, hi) in enumerate([("Mg", 0.1, 0.4), ("Al", 0.2, 1.3)]):
+        for i, (key, cmap, lab, vlims) in enumerate([
+                (f"{e}_mean", "viridis", f"{e}/Si", (lo, hi)),
+                (f"{e}_n", "magma", "log$_{10}$ footprints", None),
+                (f"{e}_se", "cividis", f"SE of {e}/Si", None)]):
+            ax = axes[i, j]
+            a = d[key]
+            if key.endswith("_n"):
+                a = np.log10(np.maximum(a, 0.1))
+                vlims = (0, np.nanpercentile(a, 99))
+            if key.endswith("_se"):
+                vlims = (0, np.nanpercentile(a, 95))
+            im = ax.imshow(a, origin="lower", extent=ext, cmap=cmap, vmin=vlims[0], vmax=vlims[1], aspect="auto")
+            cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
+            cb.set_label(lab, fontsize=7)
+            cb.ax.tick_params(labelsize=6)
+            ax.tick_params(labelsize=6)
+            ax.set_xticks([-180, -90, 0, 90, 180])
+            ax.set_yticks([-90, -45, 0, 45, 90])
+            if i == 2:
+                ax.set_xlabel("Longitude (\u00b0E)", fontsize=7)
+            if j == 0:
+                ax.set_ylabel("Latitude (\u00b0)", fontsize=7)
+    fig.tight_layout()
+    save(fig, "fig_maps")
+
+
+def fig_validation():
+    import shutil
+    src = os.path.join(ROOT, "outputs", "asr", "validation", "validation_scatter.pdf")
+    os.makedirs(FIG, exist_ok=True)
+    shutil.copy(src, os.path.join(FIG, "fig_validation.pdf"))
+
+
+def fig_fits():
+    import subprocess
+    subprocess.run([sys.executable, os.path.join(ROOT, "src", "asr", "diag_plots.py"), "--n_per", "1",
+                    "--out", os.path.join(FIG, "fig_fits.pdf")], check=True)
+
+
+if __name__ == "__main__" and len(sys.argv) > 1 and sys.argv[1] == "results":
+    fig_maps()
+    fig_validation()
+    fig_fits()
+    print("result figures ->", FIG)

@@ -1,0 +1,28 @@
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Why the solar spectrum matters for line ratios}
+Ratios to Si are often treated as insensitive to the incident spectrum. Our forward model shows that they are not. Each K line is excited by the part of the solar spectrum above its own edge (Mg \SI{1.31}{keV}, Si \SI{1.84}{keV}, Ca \SI{4.04}{keV}), and at coronal temperatures that part is dominated by a few He-like line complexes whose relative strengths change steeply with temperature.
+
+In our synthetic tests, a 30\% hotter spectrum than assumed biases Mg/Si by \SynHotMg\% and changes Ca/Si by an order of magnitude. Refitting real data with the GOES temperature scaled by 0.8 and 1.2 changes the median Mg/Si by \TsensMgLo\% and \TsensMgHi\%, and Al/Si by \TsensAlLo\% and \TsensAlHi\%.
+
+Before the solar lines were included, a continuum-only reference spectrum with any single temperature produced Mg/Si values of 0.3--0.8 together with Ca/Si of 0.004--0.5, never simultaneously lunar. The implausible ratios of earlier CLASS processing (Mg/Si $\approx1.4$, Ca/Si $\approx0.01$) have the same origin. A time-resolved description of the solar spectrum is therefore not an optional refinement but a requirement, even for ratio maps.
+
+\subsection{GOES as a proxy for the solar spectrum}
+GOES provides the solar state for every CLASS exposure from public data. Its limitations are well known. The two-channel temperature is a single isothermal value. It is weighted towards the hottest plasma. Below the B1 level it is unreliable, and we found it pinned to the edge of the response table or diverging there. The GOES-16 and GOES-18 temperatures agree to 0.5\% in their overlap.
+
+The real corona is multi-thermal. The isothermal approximation underpredicts the flux above \SI{4}{keV} at the temperatures typical of our data. This is why Ca/Si is biased even in self-consistent synthetic tests, and why Ti and Fe cannot be constrained at all. The residual orbit-to-orbit striping in the maps is consistent with solar-state errors of this kind. XSM spectra measured simultaneously with CLASS \citep{Mithun2020} would remove this limitation, and our model accepts any tabulated $S(E)$, so the extension is direct.
+
+\subsection{The instrumental aluminium component}
+The Al K$\alpha$ excess in sunlit nightside spectra has a sharp onset near \texttt{SOLARANG} $\approx93^\circ$ and disappears at the shadow boundary (\cref{fig:background}). It must therefore be excited by solar X-rays reaching aluminium in the instrument, with the Sun behind the spacecraft. The filters, frames and housing contain aluminium \citep{Pillai2021}.
+
+On the dayside the fitted amplitude is usually zero. A month-averaged nightside spectrum, as used in earlier processing, mixes this component with the particle background. Subtracting it removes a time-variable amount of Al from dayside spectra and biases Al/Si. The rare dayside spectra in which the free instrumental amplitude absorbs the lunar Al line produced the boundary defect described in \cref{sec:fix}.
+
+\subsection{Limitations}\label{sec:limitations}
+\begin{enumerate}
+\item \emph{No measured solar spectrum.} The solar spectrum is isothermal at the GOES temperature. The resulting systematic on Mg/Si is about $-15$ to $+35\%$ for $\pm$20--30\% temperature errors, and Al/Si is less affected (\cref{sec:synthetic}). Ca/Si, Ti/Si and Fe/Si are not retrievable.
+\item \emph{Relative, not absolute.} The products are weight ratios to Si. No absolute calibration is attempted, and the amplitude $A$ absorbs the solar flux, area and geometry.
+\item \emph{Detector efficiency.} The published filter transmission is applied. The SCD quantum efficiency and any surface dead layer are not modelled, because no curve is published. This mainly affects the Si line relative to Mg and Al, and probably contributes to the high median Al/Si.
+\item \emph{Physical effects not modelled.} Particle-size and roughness effects, phase-angle dependence beyond the plane-parallel geometry, and the angular dependence of scattering are not modelled.
+\item \emph{Spatial resolution.} Footprints are $25\times37$\,km. The maps are 2\textdegree{} and should not be interpreted at finer scales.
+\item \emph{Small validation sample.} Nine landing sites, sampled at the scale of a footprint, give a test with little statistical power. The GRS comparison is limited by the GRS resolution and by its own model dependence for Mg and Al.
+\end{enumerate}

@@ -87,7 +87,7 @@ def main():
                       T_mk=None if args.kT else row.get("goes_T_mk"))
             ttl = (f"[{lvl}] {row['source_file']}  counts={o['n_counts_fit']:.0f}  SOLARANG={r['solarang']:.1f}  "
                    f"nSCD={r['n_scd']}  T={o.get('T_mk', float('nan')):.1f}MK  z={o['gof_z']:.1f}  q={o['quality']}\n" +
-                   "  ".join(f"{e}/Si={o['r_'+e]:.3f}±{o['sd_r_'+e]:.3f}" for e in xm.FIT_ELEMENTS) +
+                   "  ".join(f"{e}/Si={o['r_'+e]:.3f}±{o['sd_r_'+e]:.3f}" for e in ["Mg", "Al", "Ca"]) +
                    f"  B={o['B']:.2f} beta={o['beta']:.2f} gamma={o['gamma']:.2f}")
             plot_fit(F, r, o, axes[2 * i], axes[2 * i + 1], ttl)
             i += 1
