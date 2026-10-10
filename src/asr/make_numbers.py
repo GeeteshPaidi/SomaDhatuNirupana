@@ -18,6 +18,9 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 A = os.path.join(ROOT, "outputs", "asr")
 P = os.path.join(ROOT, "paper_asr")
 N = {}
+# Primary product = v3 (pre-declared: instrumental amplitude fixed to 0 on the dayside).
+PT = "_v3"
+PM = "months_v3"
 
 
 def put(name, value, fmt=None):
@@ -54,7 +57,7 @@ def header_numbers():
 
 
 def stage_numbers():
-    s = json.load(open(os.path.join(A, "maps", "summary_2deg.json")))
+    s = json.load(open(os.path.join(A, "maps", f"summary_2deg{PT}.json")))
     st = s["stages"]
     put("NRawFiles", comma(st["raw_L1_files"]))
     put("NDayside", comma(st["dayside_valid_geometry"]))
@@ -62,7 +65,7 @@ def stage_numbers():
     put("NConverged", comma(st["fit_converged"]))
     put("NMapped", comma(st["mapping_set"]))
     put("PctMapped", 100 * st["mapping_set"] / st["dayside_valid_geometry"], ".1f")
-    months = [d for d in glob.glob(os.path.join(A, "months", "*")) if len(os.path.basename(d)) == 7]
+    months = [d for d in glob.glob(os.path.join(A, PM, "*")) if len(os.path.basename(d)) == 7]
     put("NMonths", len(months))
     fp = s["footprint_size"]
     put("FootprintA", fp["side01_km_median"], ".0f")
@@ -79,7 +82,7 @@ def stage_numbers():
         put(f"Pninetyfive{e}", pr[e][4], ".2f")
     # per-month table
     rows = []
-    ms = pd.read_parquet(os.path.join(A, "maps", "mapping_set.parquet"), columns=["month"])
+    ms = pd.read_parquet(os.path.join(A, "maps", f"mapping_set{PT}.parquet"), columns=["month"])
     nmap = ms["month"].value_counts()
     for d in sorted(months):
         cj = json.load(open(os.path.join(d, "calib.json")))
@@ -98,7 +101,7 @@ def stage_numbers():
 
 
 def calib_numbers():
-    cj = json.load(open(os.path.join(A, "months", "2024_12", "calib.json")))
+    cj = json.load(open(os.path.join(A, PM, "2024_12", "calib.json")))
     put("NStackDec", comma(cj["n_stack"]))
     put("GainDec", 1000 * cj["gain"], ".2f")
     put("OffsetDec", 1000 * cj["offset"], ".1f")
@@ -153,14 +156,14 @@ def solar_numbers():
     t = t[t.xrsb >= 1e-7]
     for y in [2024, 2025, 2026]:
         put(f"GoesTmed{['Zero','One','Two','Three','Four','Five','Six'][y - 2020]}", t[t.index.year == y].temperature.median(), ".1f")
-    ms = pd.read_parquet(os.path.join(A, "maps", "mapping_set.parquet"), columns=["goes_T_mk"])
+    ms = pd.read_parquet(os.path.join(A, "maps", f"mapping_set{PT}.parquet"), columns=["goes_T_mk"])
     put("MapTmed", ms.goes_T_mk.median(), ".1f")
     put("MapTlo", ms.goes_T_mk.quantile(0.05), ".1f")
     put("MapThi", ms.goes_T_mk.quantile(0.95), ".1f")
 
 
 def synthetic_numbers():
-    f = os.path.join(A, "synth", "summary_gen5.0_fit5.0_final.csv")
+    f = os.path.join(A, "synth", "summary_gen5.0_fit5.0_v3.csv")
     if not os.path.exists(f):
         return
     s = pd.read_csv(f)
@@ -177,7 +180,7 @@ def synthetic_numbers():
             fo.write(f"{e}/Si pull width & " + " & ".join(f"{x:.2f}" for x in s[f'{e}_pull_std']) + "\\\\\n")
         fo.write("Quality-0 fraction & " + " & ".join(f"{x:.2f}" for x in s.frac_quality0) + "\\\\\n")
         fo.write("\\bottomrule\n\\end{tabular}\n")
-    for tag, nm in [("gen6.5_fit5.0_final", "Hot"), ("gen4.0_fit5.0_final", "Cold")]:
+    for tag, nm in [("gen6.5_fit5.0_v3", "Hot"), ("gen4.0_fit5.0_v3", "Cold")]:
         f2 = os.path.join(A, "synth", f"summary_{tag}.csv")
         if os.path.exists(f2):
             s2 = pd.read_csv(f2)
@@ -188,8 +191,8 @@ def synthetic_numbers():
 
 def validation_numbers():
     V = os.path.join(A, "validation")
-    s = pd.read_csv(os.path.join(V, "sites_stats.csv"))
-    g = pd.read_csv(os.path.join(V, "grs_stats.csv"))
+    s = pd.read_csv(os.path.join(V, f"sites_stats{PT}.csv"))
+    g = pd.read_csv(os.path.join(V, f"grs_stats{PT}.csv"))
     names = {1.0: "One", 2.0: "Two", 5.0: "Five"}
     for _, r in s.iterrows():
         k = f"Site{r.element}{names[r.radius_deg]}"
@@ -212,13 +215,13 @@ def validation_numbers():
     put("GrsAlRvOne", r1.pearson_r, ".2f")
     N["GrsAlCIvOne"] = ci(r1.pearson_ci95)
     for tag, nm in [("_min1000", "MinK"), ("_min3000", "MinKKK")]:
-        gg = pd.read_csv(os.path.join(V, f"grs_stats{tag}.csv"))
+        gg = pd.read_csv(os.path.join(V, f"grs_stats{PT}{tag}.csv"))
         for e in ["Mg", "Al"]:
             put(f"Grs{e}R{nm}", gg[gg.element == e].iloc[0].pearson_r, ".2f")
-        sm = json.load(open(os.path.join(A, "maps", f"summary_2deg{tag}.json")))
+        sm = json.load(open(os.path.join(A, "maps", f"summary_2deg{PT}{tag}.json")))
         put(f"NMapped{nm}", comma(sm["stages"]["mapping_set"]))
     # site table
-    t = pd.read_csv(os.path.join(V, "sites_table.csv"))
+    t = pd.read_csv(os.path.join(V, f"sites_table{PT}.csv"))
     t2 = t[t.radius_deg == 2.0].pivot_table(index="site", columns="element",
                                             values=["ref_ratio", "class_ratio", "class_se", "n_footprints"], aggfunc="first")
     order = ["11", "12", "14", "15", "16", "17", "L16", "L20", "L24"]
@@ -244,11 +247,11 @@ def tsens_numbers():
     for sc, nm in [(0.8, "Lo"), (1.2, "Hi")]:
         diffs = {"Mg": [], "Al": []}
         for m in ["2024_12", "2025_06", "2025_12"]:
-            f = os.path.join(A, "months", f"{m}_Tx{sc}", "fits.parquet")
+            f = os.path.join(A, PM, f"{m}_Tx{sc}", "fits.parquet")
             if not os.path.exists(f):
                 continue
             a = pd.read_parquet(f)
-            b = pd.read_parquet(os.path.join(A, "months", m, "fits.parquet"))
+            b = pd.read_parquet(os.path.join(A, PM, m, "fits.parquet"))
             j = a.merge(b, on="source_file", suffixes=("_s", "_b"))
             ok = (j.quality_s == 0) & (j.quality_b == 0) & (j.goes_xrsb_b >= 1e-7)
             for e in ["Mg", "Al"]:
@@ -263,7 +266,8 @@ def tsens_numbers():
 
 def diag_numbers():
     V = os.path.join(A, "validation")
-    d = json.load(open(os.path.join(V, "score_diagnostics.json")))
+    d = json.load(open(os.path.join(V, f"score_diagnostics{PT}.json")))
+    d2 = json.load(open(os.path.join(V, "score_diagnostics.json")))
     put("GrsSitesMg", d["grs_vs_sites_r"]["Mg"], ".2f")
     put("GrsSitesAl", d["grs_vs_sites_r"]["Al"], ".2f")
     for e in ["Mg", "Al"]:
@@ -271,7 +275,22 @@ def diag_numbers():
         put(f"RelGrs{e}", d[f"grs_reliability_{e}"], ".2f")
         put(f"Ceil{e}", d[f"class_grs_ceiling_r_{e}"], ".2f")
         put(f"OldGrs{e}", d[f"old_pipeline_vs_grs_r_{e}"], ".2f")
-    m = json.load(open(os.path.join(V, "alt_median_posthoc.json")))
+    put("RelAlvTwo", d2["class_reliability_Al"], ".2f")
+    put("RelMgvTwo", d2["class_reliability_Mg"], ".2f")
+    put("CeilAlvTwo", d2["class_grs_ceiling_r_Al"], ".2f")
+    # v2 (free gamma) primary results, reported as the alternative model
+    sv2 = pd.read_csv(os.path.join(V, "sites_stats.csv"))
+    gv2 = pd.read_csv(os.path.join(V, "grs_stats.csv"))
+    for e in ["Mg", "Al"]:
+        put(f"Grs{e}RvTwo", gv2[gv2.element == e].iloc[0].pearson_r, ".2f")
+        N[f"Grs{e}CIvTwo"] = ci(gv2[gv2.element == e].iloc[0].pearson_ci95)
+        r = sv2[(sv2.radius_deg == 2.0) & (sv2.element == e)].iloc[0]
+        put(f"Site{e}TwoRvTwo", r.pearson_r, ".2f")
+        N[f"Site{e}TwoCIvTwo"] = ci(r.pearson_ci95)
+    smv2 = json.load(open(os.path.join(A, "maps", "summary_2deg.json")))
+    put("NMappedvTwo", comma(smv2["stages"]["mapping_set"]))
+    put("MedAlvTwo", smv2["mapping_set_ratio_percentiles"]["Al"][2], ".2f")
+    m = json.load(open(os.path.join(V, f"alt_median_posthoc{PT}.json")))
     put("MedGrsMg", m["median_Mg_grs_r"], ".2f")
     put("MedGrsAl", m["median_Al_grs_r"], ".2f")
     put("MedRelAl", m["median_Al_reliability"], ".2f")

@@ -87,7 +87,7 @@ def fig_background(month="2024_12"):
 
 
 def fig_goes():
-    ms_path = os.path.join(ROOT, "outputs", "asr", "maps", "mapping_set.parquet")
+    ms_path = os.path.join(ROOT, "outputs", "asr", "maps", "mapping_set_v3.parquet")
     tem = pd.read_parquet(solar.TEM)
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0))
     ax = axes[0]
@@ -114,8 +114,8 @@ if __name__ == "__main__" and len(sys.argv) == 1:
     print("figures ->", FIG)
 
 
-def fig_maps(res=2):
-    d = np.load(os.path.join(ROOT, "outputs", "asr", "maps", f"maps_{res}deg.npz"))
+def fig_maps(res=2, tag="_v3"):
+    d = np.load(os.path.join(ROOT, "outputs", "asr", "maps", f"maps_{res}deg{tag}.npz"))
     ext = [-180, 180, -90, 90]
     fig, axes = plt.subplots(3, 2, figsize=(7.2, 7.0))
     for j, (e, lo, hi) in enumerate([("Mg", 0.1, 0.4), ("Al", 0.2, 1.3)]):
@@ -147,7 +147,7 @@ def fig_maps(res=2):
 
 def fig_validation():
     import shutil
-    src = os.path.join(ROOT, "outputs", "asr", "validation", "validation_scatter.pdf")
+    src = os.path.join(ROOT, "outputs", "asr", "validation", "validation_scatter_v3.pdf")
     os.makedirs(FIG, exist_ok=True)
     shutil.copy(src, os.path.join(FIG, "fig_validation.pdf"))
 
@@ -155,6 +155,7 @@ def fig_validation():
 def fig_fits():
     import subprocess
     subprocess.run([sys.executable, os.path.join(ROOT, "src", "asr", "diag_plots.py"), "--n_per", "1",
+                    "--months_root", os.path.join(ROOT, "outputs", "asr", "months_v3"), "--gamma_zero",
                     "--out", os.path.join(FIG, "fig_fits.pdf")], check=True)
 
 

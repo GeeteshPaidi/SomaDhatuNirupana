@@ -59,11 +59,13 @@ def main():
     ap.add_argument("--month", default="2024/12")
     ap.add_argument("--kT", type=float, default=None)
     ap.add_argument("--subdir", default=None, help="month output subdir (default <YYYY_MM>)")
+    ap.add_argument("--months_root", default=None, help="default outputs/asr/months; v3: outputs/asr/months_v3")
+    ap.add_argument("--gamma_zero", action="store_true")
     ap.add_argument("--n_per", type=int, default=2)
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
     tag = args.month.replace("/", "_")
-    mdir = os.path.join(ROOT, "outputs", "asr", "months", args.subdir or tag)
+    mdir = os.path.join(args.months_root or os.path.join(ROOT, "outputs", "asr", "months"), args.subdir or tag)
     calib = json.load(open(os.path.join(mdir, "calib.json")))
     bkg = np.load(os.path.join(mdir, "background.npy"))
     inst = np.load(os.path.join(mdir, "instrumental.npy"))
@@ -73,7 +75,7 @@ def main():
     picks = {"high": df.iloc[[n - 1 - i * 5 for i in range(args.n_per)]],
              "median": df.iloc[[n // 2 + i * 5 for i in range(args.n_per)]],
              "low": df.iloc[[int(0.05 * n) + i * 5 for i in range(args.n_per)]]}
-    F = rm.make_fitter(calib, bkg, inst, args.kT)
+    F = rm.make_fitter(calib, bkg, inst, args.kT, args.gamma_zero)
     rows = sum(len(v) for v in picks.values())
     fig, axes = plt.subplots(2 * rows, 1, figsize=(9, 3.2 * rows),
                              gridspec_kw={"height_ratios": [3, 1] * rows})

@@ -151,7 +151,7 @@ def grs_compare(ms, rng):
     return t, pd.DataFrame(stats)
 
 
-def plots(site_t, grs_t, out):
+def plots(site_t, grs_t, out, tag=""):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -169,8 +169,8 @@ def plots(site_t, grs_t, out):
         ax.set_xlabel(f"Lunar Prospector GRS {e}/Si (5° pixel)")
         ax.set_ylabel(f"CLASS {e}/Si (5° pixel)")
     fig.tight_layout()
-    fig.savefig(os.path.join(out, "validation_scatter.png"), dpi=120)
-    fig.savefig(os.path.join(out, "validation_scatter.pdf"))
+    fig.savefig(os.path.join(out, f"validation_scatter{tag}.png"), dpi=120)
+    fig.savefig(os.path.join(out, f"validation_scatter{tag}.pdf"))
 
 
 def main():
@@ -196,7 +196,7 @@ def main():
         claims[e] = {"sites_pass": bool(ok1), "grs_pass": bool(ok2), "claimed": bool(ok1 and ok2)}
     with open(os.path.join(OUT, f"claims{args.tag}.json"), "w") as f:
         json.dump(claims, f, indent=1)
-    plots(site_t, grs_t, OUT)
+    plots(site_t, grs_t, OUT, args.tag)
     pd.set_option("display.width", 250)
     print(site_s.to_string())
     print(grs_s.to_string())

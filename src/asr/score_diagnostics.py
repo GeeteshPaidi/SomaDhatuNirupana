@@ -56,6 +56,11 @@ def pixel_of(g, lat, lon):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mapping_set", default=os.path.join(ROOT, "outputs", "asr", "maps", "mapping_set.parquet"))
+    ap.add_argument("--tag", default="")
+    args = ap.parse_args()
     out = {}
     g = va.read_grs(os.path.join(ROOT, "data", "grs", "lpgrs_high1_elem_abundance_5deg.tab"))
     ref = oldval.load_reference(os.path.join(ROOT, "data", "reference", "validation.xlsx"))
@@ -70,7 +75,7 @@ def main():
     t.to_csv(os.path.join(OUT, "grs_vs_sites.csv"), index=False)
 
     # 2. CLASS split-half reliability on GRS pixels
-    ms = pd.read_parquet(os.path.join(ROOT, "outputs", "asr", "maps", "mapping_set.parquet"))
+    ms = pd.read_parquet(args.mapping_set)
     months = sorted(ms.month.unique())
     half = ms.month.map({m: i % 2 for i, m in enumerate(months)}).values
     lat, lon = ms.clat.values, ms.clon.values
@@ -126,7 +131,7 @@ def main():
     for e in ELS:
         out[f"old_pipeline_vs_grs_r_{e}"] = float(pearsonr(res[e][0], res[e][1])[0])
         out[f"old_pipeline_n_pixels_{e}"] = len(res[e][0])
-    with open(os.path.join(OUT, "score_diagnostics.json"), "w") as f:
+    with open(os.path.join(OUT, f"score_diagnostics{args.tag}.json"), "w") as f:
         json.dump(out, f, indent=1)
     print(json.dumps(out, indent=1))
 

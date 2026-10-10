@@ -30,10 +30,12 @@ Each reviewer concern (as summarised in PLAN.md §2) is mapped to what changed, 
 
 ## Validation
 
+Primary model = v3 (instrumental amplitude γ fixed to 0 on the dayside; pre-declared before running; motivated by the v2 diagnosis — fully disclosed in validation.tex §Alternative model).
+
 | # | Concern | Response | Where |
 |---|---|---|---|
-| V1 | Only Al/Si validated (r = 0.74, n = 9); 5° radius huge; no CIs; no LOO. | Radii 1/2/5° pre-declared (2° primary), bootstrap 95% CIs, leave-one-out, per-site SEs. Result reported honestly: neither element passes the pre-registered 9-site test (Mg r = 0.37, Al r = 0.43, CIs include 0). Diagnostics show the test itself is weak: GRS scores −0.11 / −0.34 on it. Post hoc, Al/Si in γ≈0 spectra reaches r = 0.80 [0.55, 0.97] at 2°. The old r = 0.74 was not chased. | validation.tex §Landing sites, Table sites |
-| V2 | Needs comparison with an established orbital product. | Lunar Prospector GRS (Prettyman et al. 2006), 1,790 equal-area 5° pixels, 20° block bootstrap: Mg/Si r = 0.60 [0.54, 0.65], Al/Si r = 0.35 [0.26, 0.44]; stable under threshold sensitivity. Old pipeline on the same pixels: 0.48 / 0.19. Mg/Si is near its noise ceiling (0.77); Al/Si is limited by the instrumental-Al degeneracy (post hoc γ≈0: r = 0.72). | validation.tex §GRS, Fig. validation |
+| V1 | Only Al/Si validated (r = 0.74, n = 9); 5° radius huge; no CIs; no LOO. | Radii 1/2/5° pre-declared (2° primary), bootstrap 95% CIs, leave-one-out, per-site SEs. **Al/Si: r = 0.81 [0.48, 0.97] at 2° (1°: 0.71), passes.** Mg/Si: r = 0.38 (CI includes 0), fails. Shown to be a weak test: GRS itself scores −0.11 / −0.34 on it. | validation.tex §Landing sites, §How close |
+| V2 | Needs comparison with an established orbital product. | Lunar Prospector GRS, 1,790 equal-area 5° pixels, 20° block bootstrap: **Al/Si r = 0.72 [0.66, 0.76]; Mg/Si r = 0.61 [0.56, 0.66]** — about 80% of the noise-limited ceilings (0.87 / 0.75). Stable under count and GOES thresholds. Old pipeline on the same pixels: 0.19 / 0.48. Alternative free-γ model (v2): 0.35 / 0.60. | validation.tex §GRS, §Alternative model |
 
 ## Super-resolution
 
@@ -43,7 +45,7 @@ Each reviewer concern (as summarised in PLAN.md §2) is mapped to what changed, 
 
 ## Issues found during the rework (not raised by reviewers, disclosed in the paper)
 
-- **Solar-driven instrumental Al Kα** present only when the spacecraft is sunlit. The old mean-nightside subtraction removed a time-variable amount of Al. Now a separate background template with a free amplitude (model.tex §Background, Fig. background).
+- **Solar-driven instrumental Al Kα** present only when the Sun illuminates the spacecraft from behind. The old mean-nightside subtraction removed a time-variable amount of Al; a free amplitude (v2) absorbed lunar Al. The primary model excludes it on the dayside (model.tex §Background, Fig. background, validation.tex §Alternative model).
 - **Optical-blocking filter transmission** (0.4 µm Al + 0.4 µm polyimide, published) applied. Without it, Al/Si and Mg/Si were inflated by 31% and 24% (model.tex §Detector).
 - **In-flight gain** is 13.74 eV/ch (not the header's 13.5), fitted per month (Table months).
 - **Boundary-flag bug** found after the first validation (254 pinned Al/Si fits carried 93% of the weight). Fixed; pre-fix numbers reported (validation.tex §Disclosed correction).

@@ -43,7 +43,12 @@ def group_stat(keys, x, w, stat):
 
 
 def main():
-    ms = pd.read_parquet(os.path.join(ROOT, "outputs", "asr", "maps", "mapping_set.parquet"))
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mapping_set", default=os.path.join(ROOT, "outputs", "asr", "maps", "mapping_set.parquet"))
+    ap.add_argument("--tag", default="")
+    args = ap.parse_args()
+    ms = pd.read_parquet(args.mapping_set)
     g = va.read_grs(os.path.join(ROOT, "data", "grs", "lpgrs_high1_elem_abundance_5deg.tab"))
     lat, lon = ms.clat.values, ms.clon.values
     pix = np.full(len(ms), -1)
@@ -99,9 +104,9 @@ def main():
         ax.tick_params(labelsize=6)
     fig.tight_layout()
     fd = os.path.join(ROOT, "paper_asr", "figures")
-    fig.savefig(os.path.join(fd, "fig_maps_wmedian_posthoc.pdf"), bbox_inches="tight")
-    fig.savefig(os.path.join(fd, "fig_maps_wmedian_posthoc.png"), dpi=200, bbox_inches="tight")
-    with open(os.path.join(va.OUT, "alt_median_posthoc.json"), "w") as f:
+    fig.savefig(os.path.join(fd, f"fig_maps_wmedian_posthoc{args.tag}.pdf"), bbox_inches="tight")
+    fig.savefig(os.path.join(fd, f"fig_maps_wmedian_posthoc{args.tag}.png"), dpi=200, bbox_inches="tight")
+    with open(os.path.join(va.OUT, f"alt_median_posthoc{args.tag}.json"), "w") as f:
         json.dump(out, f, indent=1)
     print(json.dumps(out, indent=1))
 
