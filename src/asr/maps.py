@@ -190,11 +190,12 @@ def main():
     ap.add_argument("--min_counts", type=int, default=300)
     ap.add_argument("--min_xrsb", type=float, default=GOES_MIN_XRSB)
     ap.add_argument("--tag", default="")
+    ap.add_argument("--months_dir", default=None, help="default outputs/asr/months (v2); v3: outputs/asr/months_v3")
     args = ap.parse_args()
     os.makedirs(OUT, exist_ok=True)
-    df = load_fits(min_counts=args.min_counts, min_xrsb=args.min_xrsb)
+    df = load_fits(months_dir=args.months_dir, min_counts=args.min_counts, min_xrsb=args.min_xrsb)
     n_raw = 0
-    for cj in glob.glob(os.path.join(ROOT, "outputs", "asr", "months", "*", "calib.json")):
+    for cj in glob.glob(os.path.join(args.months_dir or os.path.join(ROOT, "outputs", "asr", "months"), "*", "calib.json")):
         tag = os.path.basename(os.path.dirname(cj))
         if len(tag) == 7:
             n_raw += json.load(open(cj))["n_files"]
@@ -218,7 +219,8 @@ def main():
     df.loc[df.use, ["source_file", "month", "clat", "clon", "solarang", "goes_T_mk", "goes_xrsb", "n_counts_fit"] +
            [f"r_{e}" for e in ELS] + [f"sd_r_{e}" for e in ELS]].to_parquet(
         os.path.join(OUT, f"mapping_set{args.tag}.parquet"), index=False)
-    plot_maps(maps, OUT)
+    if not args.tag:
+        plot_maps(maps, OUT)
     print(json.dumps(summary, indent=1))
 
 

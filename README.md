@@ -1,135 +1,86 @@
-# Lunar Elemental Abundance Mapping from Chandrayaan-2 CLASS XRF Data
+# Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS
 
-This repository implements a full, physics-based pipeline for turning raw Chandrayaan-2 CLASS
-(Chandrayaan-2 Large Area Soft X-ray Spectrometer) X-ray fluorescence spectra into global maps of
-lunar elemental abundance. It performs fundamental-parameter (FP) forward modelling and
-trust-region-reflective (TRF) least-squares spectral fitting to recover per-footprint element
-concentrations (Fe, Al, Mg, Si, Ca, Ti, O), projects those fits onto a spatial grid with
-adaptive Gaussian weighting, and fuses the resulting low-resolution abundance maps with a
-co-registered optical reflectance image via a cross-modal, FFT-based super-resolution step to
-sharpen spatial detail. Fitted and mapped abundances are validated against Apollo/Luna landing-site
-ground-truth geochemistry.
+This repository contains the processing chain and manuscript for:
 
-This repository accompanies a paper submitted to **IEEE Transactions on Geoscience and Remote
-Sensing (TGRS)**:
+> *Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS with time-resolved solar excitation from GOES XRS*
+> S. Kanjilal, S. Maji, P. G. Chandra. Prepared for *Advances in Space Research*.
 
-> *Global Fundamental-Parameter Mapping of Lunar Elemental Abundances from Chandrayaan-2 CLASS
-> XRF Data with Cross-Modal Super-Resolution*
+The chain fits every Chandrayaan-2 CLASS Level-1 X-ray fluorescence spectrum on its raw counts with a Poisson (Cash) likelihood. The model is a simplified fundamental-parameter model:
 
-The paper source and compiled PDF are in [`paper/`](paper/); a supplementary PDF with additional
-per-element maps is at [`paper/supplementary.pdf`](paper/supplementary.pdf).
+- Sherman primary fluorescence with matrix attenuation and incidence geometry;
+- a scattered solar spectrum;
+- an erf-binned Gaussian detector response;
+- the published CLASS filter transmission;
+- a particle-background template.
 
-## Data source
+The incident solar spectrum is an isothermal CHIANTI spectrum at the GOES XRS temperature of each exposure. The chain uses only public data.
 
-Raw CLASS Level-1 XRF spectra are publicly available via the **PRADAN** (Policy-based Data
-Retrieval, Analytics, Dissemination, and Notification) portal, hosted by the Indian Space Science
-Data Centre (ISSDC), ISRO: **https://pradan.issdc.gov.in/ch2/**
-
-This repository does not redistribute the raw FITS archive (see [Data layout](#data-layout) below)
-— fetch it from PRADAN directly.
+> **Branches.** `asr-rework` holds the current work described here. `master` holds the earlier version submitted to IEEE TGRS (TGRS-2026-07721, not accepted). The old pipeline remains in `src/fitting/`, `src/mapping/` and `src/superres.py` for reference only.
 
 ## Repository layout
 
 ```
-├── paper/                     IEEE TGRS paper source, compiled PDF, supplementary material
-├── data/
-│   ├── raw/                    Raw CLASS L1 FITS spectra (not tracked — fetch from PRADAN)
-│   ├── archive/                Original PRADAN zip downloads (not tracked)
-│   ├── processed/              Preprocessed/fitted parquet catalogues (not tracked, regenerable)
-│   └── reference/
-│       └── validation.xlsx      Apollo/Luna landing-site ground-truth geochemistry
-├── assets/
-│   └── moon_real.jpg           Optical reflectance guide image used by the super-resolution step
-├── src/
-│   ├── fitting/                 FP forward model + TRF spectral fitting
-│   ├── mapping/                 Spatial abundance mapping (adaptive Gaussian weighting)
-│   ├── postprocess/             Utilities that merge/combine fit outputs
-│   ├── figures/                 Scripts that render the paper's figures
-│   ├── superres.py              Cross-modal guided super-resolution (Pearson correlation,
-│   │                            ridge regression, FFT high-pass fusion, alpha ablation)
-│   ├── validate.py              Ground-truth validation against Apollo/Luna sites
-│   └── sr_site_validate.py      Held-out check of the super-resolved product itself
-├── outputs/figures/
-│   ├── final/                    The paper's main figures
-│   ├── supplementary/            The paper's supplementary figures
-│   └── *.csv                     Validation and ablation result tables
-└── requirements.txt
+paper_asr/                ASR manuscript (elsarticle): main.tex, sections/, figures/, tables/,
+                          numbers.tex (auto-generated), references.bib, cover_letter.tex
+src/asr/                  Current pipeline
+  xrf_model.py            Forward model (composition closure, primary/secondary fluorescence,
+                          CLASS filter transmission, detector response)
+  fitter.py               Cash-statistic fitter: Fisher uncertainties, GoF, quality flags
+  solar.py                GOES XRS -> T, EM per minute; CHIANTI spectrum table (sunkit-spex)
+  run_month.py            One month: read FITS, background templates, energy calibration, fits
+  run_all.py              All months (one subprocess per month)
+  maps.py                 2-deg maps + quality layers + pipeline stage counts
+  validate_asr.py         Apollo/Luna sites (1/2/5 deg) and Lunar Prospector GRS (5 deg) validation
+  score_diagnostics.py    Reliability ceilings, GRS-vs-sites, old-pipeline baseline
+  alt_median_map.py       Post-hoc weighted-median sensitivity
+  synth_recovery.py       Synthetic recovery tests (gate)
+  make_numbers.py         Every number in the paper -> numbers.tex / headline_numbers.json
+  paper_figures.py, diag_plots.py   Figures
+  survey_headers.py, baseline_check.py   Phase-0 header survey and old-pipeline reproduction
+tests/test_asr_model.py   Unit tests (pytest)
+PLAN.md, TRACKER.md       Rework plan, task tracker, decisions log (incl. pre-declared choices)
+RESPONSE_MAP.md           Each TGRS reviewer concern -> what changed and where
+src/fitting, src/mapping, src/superres.py, paper/   Previous (TGRS) version, kept for the record
 ```
+
+## Data (not redistributed; place locally)
+
+| Data | Source | Local path |
+|---|---|---|
+| CLASS Level-1 spectra (24 monthly archives) | ISRO PRADAN, https://pradan.issdc.gov.in/ch2/ | `data/raw/YYYY/MM/DD/*.fits` |
+| GOES XRS 1-min science data (GOES-16 2020–2025, GOES-18 2024–2026) | NOAA NCEI | `data/goes/sci_xrsf-l2-avg1m_g1?_yYYYY_v2-2-1.nc` |
+| Lunar Prospector GRS elemental abundances | PDS Geosciences, LP-L-GRS-5-ELEM-ABUNDANCE-V1.0 | `data/grs/lpgrs_high1_elem_abundance_5deg.{tab,lbl}` |
+| Returned-soil averages (Lunar Sourcebook Table 7.15) | included | `data/reference/validation.xlsx` |
 
 ## Installation
 
-Requires Python 3.10+.
+Python 3.12. Install `requirements.txt`, then:
 
 ```bash
-pip install -r requirements.txt
+pip install xraylib sunpy sunkit-instruments "git+https://github.com/sunpy/sunxspex"   # sunkit-spex
 ```
 
-## Running the pipeline
-
-All commands below assume you are in the relevant `src/` subdirectory (each script's default
-paths are relative to its own location) and that `data/raw/` has been populated from PRADAN.
-
-### 1. Preprocessing + fitting (`src/fitting/`)
-Fits the fundamental-parameter forward model to every raw spectrum via TRF least-squares,
-recovering 7 elemental concentrations per footprint.
+## Reproducing the paper
 
 ```bash
-cd src/fitting
-python run_pipeline.py --raw_dir ../../data/raw --out ../../data/processed/catalogue_result.parquet
+python src/asr/solar.py --table --goes          # CHIANTI table + GOES temperatures
+python src/asr/run_all.py --gamma_zero --out_root outputs/asr/months_v3   # all months (~5.5 h, 12 CPU workers)
+python src/asr/maps.py --months_dir outputs/asr/months_v3 --tag _v3
+python src/asr/validate_asr.py --mapping_set outputs/asr/maps/mapping_set_v3.parquet --tag _v3
+python src/asr/synth_recovery.py --solar --kT_gen 5 --kT_fit 5 --n 80 \
+       --levels 300,1000,3000,10000 --bkg outputs/asr/months/2024_12/background.npy \
+       --inst outputs/asr/months/2024_12/instrumental.npy --tag _final
+python src/asr/make_numbers.py                  # numbers.tex + tables
+python src/asr/paper_figures.py && python src/asr/paper_figures.py results
+cd paper_asr && pdflatex main && bibtex main && pdflatex main && pdflatex main
+python -m pytest tests                          # unit tests
 ```
 
-Use `--prepare_only` to stop after preprocessing/coverage reporting, or `--skip_prepare` to reuse
-already-preprocessed month catalogues. See `element_model.py` / `element_handler.py` for the FP
-forward model itself, and `xrf_fitter.py` for the TRF fit.
-
-### 2. Spatial mapping (`src/mapping/`)
-Projects the per-footprint fits onto a lat/lon grid with adaptive Gaussian footprint weighting.
-
-```bash
-cd src/mapping
-python build_maps.py --fit_result ../../data/processed/catalogue_result.parquet \
-                      --out_dir ../../outputs/figures/maps --ratio
-```
-
-### 3. Cross-modal super-resolution (`src/`)
-Fuses a mapped abundance array with the optical guide image (`assets/moon_real.jpg`) to sharpen
-spatial detail, and computes the Pearson correlation / ridge-regression / ablation numbers
-reported in the paper.
-
-```bash
-cd src
-python superres.py --element Al --maps_dir ../outputs/figures/maps --optical ../assets/moon_real.jpg
-```
-
-### 4. Validation (`src/`)
-Compares fitted/mapped abundances against Apollo/Luna landing-site ground truth
-(`data/reference/validation.xlsx`), and checks whether the super-resolved product itself moves
-estimates toward or away from ground truth (leakage-free, since no ground-truth data enters the
-SR fusion step).
-
-```bash
-cd src
-python validate.py --fit_result ../data/processed/catalogue_result.parquet
-python sr_site_validate.py --sr_result ../outputs/figures/sr_result_Al.npz
-```
-
-### 5. Figures (`src/figures/`)
-Each script renders one paper figure from the outputs of the stages above, saving to
-`outputs/figures/final/` or `outputs/figures/supplementary/`.
-
-```bash
-cd src/figures
-python fig1_preprocessing.py
-python fig2_fitted_spectrum.py
-python fig3_sr_sidebyside.py
-python appendix_sr_maps.py
-python fig_coverage_map.py
-```
+Everything runs on CPU (NumPy/SciPy, multiprocessing).
 
 ## Citation
 
-If you use this code or the accompanying paper, please cite as described in
-[`CITATION.cff`](CITATION.cff).
+See [`CITATION.cff`](CITATION.cff). The Zenodo record will be updated for this version on acceptance.
 
 ## License
 
