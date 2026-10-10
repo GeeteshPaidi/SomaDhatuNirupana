@@ -30,6 +30,7 @@ from scipy import optimize
 
 sys.path.insert(0, os.path.dirname(__file__))
 import fitter as ft  # noqa: E402
+import solar  # noqa: E402
 import xrf_model as xm  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -139,14 +140,24 @@ def calibrate(net, gain0=0.0135, offset0=0.0):
 _F = None
 
 
+def make_fitter(calib, bkg, inst, kT=None):
+    """kT=None -> CHIANTI table with per-spectrum GOES temperature;
+    kT>0 -> legacy continuum-only spectrum at fixed kT (keV)."""
+    det = xm.Detector(gain=calib["gain"], offset=calib["offset"], sigma0=calib["sigma0"])
+    if kT is None:
+        fm = xm.ForwardModel(secondary=False, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=8.0)
+    else:
+        fm = xm.ForwardModel(kT=kT, secondary=False, e_max=15, de=0.005)
+    return ft.SpectrumFitter(fm, det, bkg, inst_rate=inst)
+
+
 def _init(kT, calib, bkg, inst):
     global _F
-    det = xm.Detector(gain=calib["gain"], offset=calib["offset"], sigma0=calib["sigma0"])
-    _F = ft.SpectrumFitter(xm.ForwardModel(kT=kT, secondary=False, e_max=15, de=0.005), det, bkg, inst_rate=inst)
+    _F = make_fitter(calib, bkg, inst, kT)
 
 
 def _fit(r):
-    o = _F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"])
+    o = _F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"], T_mk=r.get("T_fit"))
     o.pop("corr", None)
     o["source_file"] = r["source_file"]
     return o
@@ -155,13 +166,24 @@ def _fit(r):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--month", default="2024/12")
-    ap.add_argument("--kT", type=float, default=1.07)
+    ap.add_argument("--kT", type=float, default=None,
+                    help="legacy fixed continuum kT (keV); default: GOES T + CHIANTI")
+    ap.add_argument("--T_scale", type=float, default=1.0,
+                    help="sensitivity: multiply the GOES temperature by this factor")
+    ap.add_argument("--T_fixed", type=float, default=None, help="sensitivity: fixed CHIANTI T (MK)")
     ap.add_argument("--workers", type=int, default=12)
     ap.add_argument("--limit", type=int, default=None, help="max dayside spectra to fit (random subset)")
     ap.add_argument("--out_root", default=os.path.join(ROOT, "outputs", "asr", "months"))
     args = ap.parse_args()
     tag = args.month.replace("/", "_")
-    out_dir = os.path.join(args.out_root, tag if args.kT == 1.07 else f"{tag}_kT{args.kT}")
+    suffix = ""
+    if args.kT is not None:
+        suffix = f"_kT{args.kT}"
+    elif args.T_fixed is not None:
+        suffix = f"_Tfix{args.T_fixed}"
+    elif args.T_scale != 1.0:
+        suffix = f"_Tx{args.T_scale}"
+    out_dir = os.path.join(args.out_root, tag + suffix)
     os.makedirs(out_dir, exist_ok=True)
 
     t0 = time.perf_counter()
@@ -191,11 +213,17 @@ def main():
     if args.limit and len(day) > args.limit:
         rng = np.random.default_rng(0)
         day = [day[i] for i in sorted(rng.choice(len(day), args.limit, replace=False))]
+    T, EM, XB = solar.goes_at([r["mid_utc"] for r in day])
+    for r, t, em, xb in zip(day, T, EM, XB):
+        r["goes_T_mk"], r["goes_EM"], r["goes_xrsb"] = float(t), float(em), float(xb)
+        if args.kT is None:
+            r["T_fit"] = args.T_fixed if args.T_fixed is not None else t * args.T_scale
+    calib["frac_with_goes"] = float(np.mean(np.isfinite(T))) if len(T) else 0.0
     t1 = time.perf_counter()
     with Pool(args.workers, initializer=_init, initargs=(args.kT, calib, bkg, inst)) as p:
         res = list(p.imap(_fit, day, chunksize=16))
     fit_s = time.perf_counter() - t1
-    meta = pd.DataFrame([{k: v for k, v in r.items() if k != "counts"} for r in day])
+    meta = pd.DataFrame([{k: v for k, v in r.items() if k not in ("counts", "T_fit")} for r in day])
     df = meta.merge(pd.DataFrame(res), on="source_file")
     df["month"] = tag
     df.to_parquet(os.path.join(out_dir, "fits.parquet"), index=False)

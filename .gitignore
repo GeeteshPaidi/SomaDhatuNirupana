@@ -52,3 +52,4 @@ paper/*.synctex.gz
 data/raw/**/*.xml
 outputs/asr/
 reviews/
+data/goes/

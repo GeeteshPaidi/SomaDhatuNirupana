@@ -82,21 +82,20 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
     - Solar-shape systematic (fit kT 1.07 keV; 100 spectra each at 1k and 10k counts), median ratio bias:
       - true kT 0.6 keV: Mg **+40%**, Al **+24%**, Ca **−86%**, Ti −99%, Fe −99%. At 10k counts GoF z = 5.9 → wrong kT is detectable in bright spectra.
       - true kT 1.5 keV: Mg +3%, Al 0%, Ca **+79%**, Ti +140%, Fe **+520%**; GoF does not flag it.
-    - Conclusion: Mg/Si and Al/Si carry a −3…+40% solar-shape systematic. Ca/Si is uncertain by about a factor of 2, and Ti/Si and Fe/Si by an order of magnitude, without XSM. This is the honest systematic for the paper.
-- [ ] **1.8** Smoke test on one real month; check sanity ranges; diagnostic plots (high/median/low-quality fits).
-  - Status / Notes: **BLOCKED on a scope decision (Open questions 3–4).** Pipeline runs (`src/asr/run_month.py`, `src/asr/diag_plots.py`; 2024-12, 3,000 random dayside spectra, ~60 s with 12 workers). Findings:
-    - **Calibration (2024-12 stack, 75,707 spectra):** gain 13.714 eV/ch, offset +2.6 eV, σ₀ 73.5 eV → FWHM 183 eV @ 1.49 keV, 209 eV @ 5.9 keV (within the pre-launch "<250 eV @ 1.48 keV" spec). The gain is 1.6% above the header GAIN = 13.5.
-    - **Solar-driven instrumental Al Kα.** Nightside spectra show a strong Al Kα line, plus continuum below 1.2 keV and a 6.7 keV bump, *only* when the spacecraft is sunlit. Median Al-line rate: 31.8 c/s (n = 8,555) when SOLARANG < shadow boundary (≈109° at 100 km), vs 0.16 c/s (n = 2,254) in the lunar umbra. It correlates with solar proxies (r = 0.61 with 0.6–0.9 keV counts, 0.58 with 6.7 keV) and not with particle background (r = 0.11 with 8–20 keV). It changes on less than 30-min scales, so orbit-interpolation is not viable. Its size is comparable to the lunar Si line. The old pipeline subtracted a month-mean of it, so old Al/Si is contaminated by an amount that varies with solar activity.
-    - **New background model:** particle template P from umbra nightside (scaled per spectrum by a single 8–20 keV summed bin) plus instrumental template T from sunlit nightside (sunlit − P) with free amplitude γ. Synthetic test with γ_true = 0.5 (`summary_gen1.07_fit1.07_inst.csv`): γ is identifiable. Mg/Si and Al/Si biases stay ≤ 1%; Al/Si scatter at 300 / 1k / 3k / 10k Si counts = 31% / 14% / 5.2% / 3.5% (vs 13% / 5.7% / 3.3% / 1.7% without γ).
-    - **Real-data ratios fail the sanity ranges at kT = 1.07 keV:** median Mg/Si 0.69, Al/Si 1.07, Ca/Si 0.011 (lunar 0.15–0.3, 0.3–0.8, 0.35–0.55). γ is mostly fitted at 0. This is the same pattern as the synthetic "true sun softer than assumed" case.
-    - **kT scan on the same 3,000 spectra** (median ratio; ΣC):
-      - kT 0.4: Mg 0.33, Al 0.71, Ca 0.47; ΣC 1,558,407
-      - kT 0.6: Mg 0.50, Al 0.86, Ca 0.084; ΣC 1,528,197
-      - kT 1.07: Mg 0.69, Al 1.07, Ca 0.011; ΣC 1,519,619
-      - kT 1.5: Mg 0.81, Al 1.18, Ca 0.004; ΣC 1,522,719
-    - Likelihood barely discriminates kT (and mildly prefers 1.07). Only kT ≈ 0.4 keV gives lunar-like ratios, and picking it for that reason would be tuning (honesty rule). Bright spectra (>3k counts) have median GoF z ≈ 4.7–5 at every kT, i.e. a residual misfit that kT does not fix (candidates: solar line emission missing from S(E), the instrumental-template shape on the dayside, efficiency).
-    - Old pipeline note: Mg/Si high and Ca/Fe/Ti tiny in the TGRS results is the same solar-shape signature.
-
+    - **Addendum (final configuration: GOES-T CHIANTI spectrum, two-component background, Ti/Fe fixed)**, 80 spectra/level at Si counts 300 / 1k / 3k / 10k:
+      - T_gen = T_fit = 5 MK: Mg bias −1 / −4 / −2 / −1%, scatter 19 / 10 / 7 / 4%; Al bias −3 / 0 / 0 / +0.5%, scatter 29 / 15 / 7 / 4%; pulls 0.85–1.19. Ca bias +30% even at the right T, scatter 58–136% → **Ca/Si not recoverable per spectrum.**
+      - GOES T error +30% (true 6.5, fit 5): Mg −13…−16%, Al +9…+16%, Ca ×9. Error −20% (true 4, fit 5): Mg +32…+36%, Al +1…+6%, Ca → 0.
+      - → Claimed products limited to **Mg/Si and Al/Si**. Systematic from the GOES-T uncertainty: Mg/Si −15/+35%, Al/Si 0/+15% for ±20–30% T error.
+    - (Original continuum-model) Conclusion: Mg/Si and Al/Si carry a −3…+40% solar-shape systematic. Ca/Si is uncertain by about a factor of 2, and Ti/Si and Fe/Si by an order of magnitude, without XSM. This is the honest systematic for the paper.
+- [x] **1.8** Smoke test on one real month; check sanity ranges; diagnostic plots (high/median/low-quality fits).
+  - Status / Notes: done after the Q3/Q4 decisions. 2024-12, 3,000 random dayside spectra (`outputs/asr/months/2024_12/`, `diag_fits.png`).
+    - **Calibration** (stack of 75,707): gain 13.714 eV/ch, offset +2.6 eV, σ₀ 73.5 eV (FWHM 183 eV @ 1.49 keV, 209 eV @ 5.9 keV).
+    - **Solar-driven instrumental Al Kα found.** It is present in nightside spectra only when the spacecraft is sunlit (31.8 vs 0.16 c/s), tracks solar proxies and not particles, and varies on <30 min. Handled by a two-component background: particle template P (umbra nightside, β pinned by a single 8–20 keV summed bin) + instrumental template T (sunlit − P, free γ). It cannot be fixed from GOES: Spearman 0.39, ×2.2 scatter, and the scale depends on SOLARANG (`outputs/asr/inst_vs_goes_2024_12.csv`).
+    - **Solar spectrum:** CHIANTI isothermal lines + continuum (`sunkit_spex`, coronal abundances) at the per-exposure GOES XRS temperature (`src/asr/solar.py`; GOES-16 for 2020–22, GOES-18 for 2024–26; 1-min science data, White et al. 2005 via `sunkit_instruments`). Yearly median T: 2020 2.8 MK, 2021 8.0, 2022 6.0, 2024 5.5, 2025 5.1, 2026 5.3. Solar lines carry 55–80% of the exciting flux above the Mg/Si edges at 3–15 MK, so the continuum-only model was badly wrong.
+    - Continuum-only kT scan (superseded): Mg/Si 0.33–0.81, Ca/Si 0.47–0.004 for kT 0.4–1.5 keV; ΣC nearly flat.
+    - **GOES + CHIANTI result** (Ti/Si, Fe/Si fixed): quality = 0 for 47%. Median Mg/Si **0.30** [5–95%: 0.12–0.54], bright spectra 0.235 → inside the lunar range. Al/Si **1.12** [0.39–1.61], median rel. unc. 67% → high; instrumental-Al degeneracy plus unknown efficiency. Ca/Si unconstrained in most spectra (rel. unc. ~300%).
+    - Final-config synthetic gate (`summary_gen*_fit5.0_final.csv`, T = 5 MK, γ = 0.5, 80/level): see 1.7 addendum.
+    - Fit speed 96 ms/spectrum single-core (tol 1e-6; identical results to 1e-8).
 ## Phase 2 — Full run (ask Geetesh before starting; ~8 h with 14 workers last time)
 
 - [ ] **2.1** Apply new selection criterion; record counts at each stage (raw → dayside → QC → fitted).
@@ -167,6 +166,10 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 | 2026-10-10 | 1.5 | Fit window 1.15–7.5 keV; Na and K lines not modelled (matrix only). O stoichiometric via oxide closure. | Avoids Na Kα and the <1.1 keV excess; Na/K lines are minor. |
 | 2026-10-10 | 1.8 / Q3 | **Geetesh approved option (a): per-exposure solar temperature from GOES XRS** (1–8 Å / 0.5–4 Å ratio → isothermal T, EM). Fixed kT = 1.07 keV retained only as a sensitivity case. | Real ratios depend strongly on kT; GOES is free and public; not an XSM correction. |
 | 2026-10-10 | 1.8 / Q4 | **Instrumental Al: two-component background (particle umbra template P + solar-driven instrumental template T with free γ)** adopted as the method. | Recommended option; synthetic recovery shows γ identifiable with ≤1% bias. |
+| 2026-10-10 | 1.8 | Ti/Si = 0.04 and Fe/Si = 0.37 fixed (global lunar-soil means, matrix only); conditioning computed on the core block (A, Mg/Si, Al/Si, B, β, γ). | At GOES T 3–8 MK the solar flux above the Ti/Fe edges is too small; free Ti/Fe made 92% of fits ill-conditioned. |
+| 2026-10-10 | 1.8 | Ca/Si is fitted but **not claimed** per spectrum. | Final-config synthetic: +30% bias at the right T, ×9 / →0 under ±20–30% T error. |
+| 2026-10-10 | 2 | **Pre-declared (before any validation):** mapping set = quality == 0 (Si-window counts ≥ 300, abs(GoF z) ≤ 3, Mg/Si & Al/Si not at bound, core cond ≤ 1e4, valid geometry, GOES T available). Threshold sensitivity: min counts 300 / 1000 / 3000. Solar-T sensitivity: GOES T × 0.8 and × 1.2 on a 3-month subset. | PLAN §4 selection; fixed before 4.1/4.2. |
+| 2026-10-10 | 3–4 | **Pre-declared:** maps on a 2° equal-angle grid, plus 5° for the GRS comparison. Per-cell statistic = inverse-variance-weighted mean of footprint ratios, footprints rasterised by their 4 corners. Observed coverage = cells hit by ≥1 quality-0 footprint; no infill for statistics. Validation radii 1° / 2° / 5° (primary = 2°), bootstrap 95% CI (10,000), leave-one-site-out, block bootstrap with 20° blocks for GRS. Element claimed only if Pearson r > 0 with 95% CI excluding 0 in BOTH Apollo/Luna (primary radius) and GRS. | Honesty rule: fix analysis choices before seeing numbers. |
 | 2026-10-10 | 0 | New rework code goes in `src/asr/`, outputs in gitignored `outputs/asr/`; old `src/fitting/` left intact for baseline reproduction. | Keeps the old pipeline runnable for the 0.2 baseline and for reviewers' comparison. |
 
 ## Open questions for Geetesh

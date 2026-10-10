@@ -31,13 +31,21 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CAL = dict(gain=0.01363, offset=0.017, sigma0=0.045)
 SC_FRAC_3KEV = 0.004
 GAMMA_TRUE = 0.5
+FIXED = None  # None -> fitter default (Ti, Fe fixed); {} -> all free
 # Lunar composition ranges (weight ratios to Si), from PLAN.md sanity ranges / Apollo soils.
 RANGES = {"Mg": (0.10, 0.35), "Al": (0.20, 0.80), "Ca": (0.30, 0.60), "Ti": (0.005, 0.30), "Fe": (0.10, 0.80)}
 
 _G = {}
 
 
-def _init(kT_gen, kT_fit, bkg_path, inst_path=None):
+def _fm(kT, secondary, use_solar):
+    if use_solar:  # kT is a temperature in MK for the CHIANTI table
+        import solar
+        return xm.ForwardModel(secondary=secondary, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=kT)
+    return xm.ForwardModel(kT=kT, secondary=secondary, e_max=15, de=0.005)
+
+
+def _init(kT_gen, kT_fit, bkg_path, inst_path=None, use_solar=False):
     if bkg_path.endswith(".npz"):  # legacy single month-mean nightside template, no instrumental term
         d = np.load(bkg_path)
         bkg, inst = d["night"] / d["tn"], None
@@ -45,10 +53,9 @@ def _init(kT_gen, kT_fit, bkg_path, inst_path=None):
         bkg = np.load(bkg_path)
         inst = np.load(inst_path) if inst_path else None
     det = xm.Detector(**CAL)
-    _G["gen"] = ft.SpectrumFitter(xm.ForwardModel(kT=kT_gen, secondary=True, e_max=15, de=0.005), det, bkg,
-                                  inst_rate=inst)
-    _G["fit"] = ft.SpectrumFitter(xm.ForwardModel(kT=kT_fit, secondary=False, e_max=15, de=0.005), det, bkg,
-                                  inst_rate=inst)
+    _G["gen"] = ft.SpectrumFitter(_fm(kT_gen, True, use_solar), det, bkg, inst_rate=inst)
+    _G["fit"] = ft.SpectrumFitter(_fm(kT_fit, False, use_solar), det, bkg, inst_rate=inst,
+                                  fixed_ratios=FIXED if FIXED is not None else None)
 
 
 def truth_theta(G, ratios, s1, si_counts):
@@ -114,12 +121,13 @@ def main():
     ap.add_argument("--bkg", default=os.path.join(ROOT, "outputs", "asr", "stack_2024_12.npz"))
     ap.add_argument("--inst", default=None, help="instrumental template .npy (enables gamma)")
     ap.add_argument("--tag", default="")
+    ap.add_argument("--solar", action="store_true", help="CHIANTI table; kT_gen/kT_fit are T in MK")
     ap.add_argument("--out_dir", default=os.path.join(ROOT, "outputs", "asr", "synth"))
     args = ap.parse_args()
     os.makedirs(args.out_dir, exist_ok=True)
     levels = [int(x) for x in args.levels.split(",")]
     jobs = [(1000 * li + i, lv) for li, lv in enumerate(levels) for i in range(args.n)]
-    with Pool(args.workers, initializer=_init, initargs=(args.kT_gen, args.kT_fit, args.bkg, args.inst)) as p:
+    with Pool(args.workers, initializer=_init, initargs=(args.kT_gen, args.kT_fit, args.bkg, args.inst, args.solar)) as p:
         res = pd.DataFrame(p.map(one, jobs, chunksize=4))
     tag = f"gen{args.kT_gen}_fit{args.kT_fit}{args.tag}"
     res.to_parquet(os.path.join(args.out_dir, f"recovery_{tag}.parquet"), index=False)

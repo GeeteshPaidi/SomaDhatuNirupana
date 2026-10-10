@@ -117,8 +117,12 @@ class ForwardModel:
     intensities, scattered continuum and the folded channel spectrum."""
 
     def __init__(self, kT=1.07, e_max=20.0, de=0.01, secondary=True,
-                 efficiency=None, lines=None):
+                 efficiency=None, lines=None, solar=None, T_mk=None):
+        """solar: optional solar.SolarTable (CHIANTI lines + continuum); if given,
+        the incident spectrum is the table at temperature T_mk (set_temperature),
+        and kT is ignored. Requires de = 0.005 (the table spacing)."""
         self.kT = kT
+        self.solar = solar
         self.secondary = secondary
         self.lines = lines if lines is not None else build_lines()
         self.efficiency = efficiency  # callable E -> efficiency, or None for unity
@@ -150,6 +154,21 @@ class ForwardModel:
         self.S_TAU = np.array([self.S * self.tau_g[ln.el] for ln in self.lines])  # (n_lines, nE)
         self.Q = np.array([ln.Q for ln in self.lines])
         self.line_el = [ln.el for ln in self.lines]
+        self.TAU_LINES = np.array([self.tau_g[ln.el] for ln in self.lines])
+        self.T_mk = None
+        if solar is not None:
+            assert abs(de - 0.005) < 1e-9, "solar table requires de=0.005"
+            self.set_temperature(T_mk if T_mk is not None else 10.0)
+
+    def set_temperature(self, T_mk):
+        """Switch the incident spectrum to the CHIANTI isothermal spectrum at T_mk."""
+        if self.solar is None:
+            raise ValueError("no solar table")
+        if T_mk == self.T_mk:
+            return
+        self.T_mk = T_mk
+        self.S = self.solar.on_grid(T_mk, self.Eg)
+        self.S_TAU = self.S[None, :] * self.TAU_LINES
 
     def comp_vector(self, comp):
         return np.array([comp[e] for e in self.elements])

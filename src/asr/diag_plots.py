@@ -57,12 +57,13 @@ def plot_fit(F, r, o, ax_top, ax_bot, title):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--month", default="2024/12")
-    ap.add_argument("--kT", type=float, default=1.07)
+    ap.add_argument("--kT", type=float, default=None)
+    ap.add_argument("--subdir", default=None, help="month output subdir (default <YYYY_MM>)")
     ap.add_argument("--n_per", type=int, default=2)
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
     tag = args.month.replace("/", "_")
-    mdir = os.path.join(ROOT, "outputs", "asr", "months", tag)
+    mdir = os.path.join(ROOT, "outputs", "asr", "months", args.subdir or tag)
     calib = json.load(open(os.path.join(mdir, "calib.json")))
     bkg = np.load(os.path.join(mdir, "background.npy"))
     inst = np.load(os.path.join(mdir, "instrumental.npy"))
@@ -72,8 +73,7 @@ def main():
     picks = {"high": df.iloc[[n - 1 - i * 5 for i in range(args.n_per)]],
              "median": df.iloc[[n // 2 + i * 5 for i in range(args.n_per)]],
              "low": df.iloc[[int(0.05 * n) + i * 5 for i in range(args.n_per)]]}
-    det = xm.Detector(gain=calib["gain"], offset=calib["offset"], sigma0=calib["sigma0"])
-    F = ft.SpectrumFitter(xm.ForwardModel(kT=args.kT, secondary=False, e_max=15, de=0.005), det, bkg, inst_rate=inst)
+    F = rm.make_fitter(calib, bkg, inst, args.kT)
     rows = sum(len(v) for v in picks.values())
     fig, axes = plt.subplots(2 * rows, 1, figsize=(9, 3.2 * rows),
                              gridspec_kw={"height_ratios": [3, 1] * rows})
@@ -83,9 +83,10 @@ def main():
             path = glob.glob(os.path.join(ROOT, "data", "raw", *args.month.split("/"), "**", row["source_file"]),
                              recursive=True)[0]
             r = rm.read_one(path)
-            o = F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"])
+            o = F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"],
+                      T_mk=None if args.kT else row.get("goes_T_mk"))
             ttl = (f"[{lvl}] {row['source_file']}  counts={o['n_counts_fit']:.0f}  SOLARANG={r['solarang']:.1f}  "
-                   f"nSCD={r['n_scd']}  z={o['gof_z']:.1f}  q={o['quality']}\n" +
+                   f"nSCD={r['n_scd']}  T={o.get('T_mk', float('nan')):.1f}MK  z={o['gof_z']:.1f}  q={o['quality']}\n" +
                    "  ".join(f"{e}/Si={o['r_'+e]:.3f}±{o['sd_r_'+e]:.3f}" for e in xm.FIT_ELEMENTS) +
                    f"  B={o['B']:.2f} beta={o['beta']:.2f} gamma={o['gamma']:.2f}")
             plot_fit(F, r, o, axes[2 * i], axes[2 * i + 1], ttl)
