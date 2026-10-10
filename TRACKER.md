@@ -122,29 +122,28 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
   - Status / Notes: per the pre-registered rule, **no element is "claimed" as validated**: both pass GRS, both fail the 9-site CI test. Paper framing: Mg/Si and Al/Si are presented as relative maps whose large-scale pattern agrees with GRS (Mg strongly, Al moderately). The landing-site test is reported as inconclusive (n = 9, power-limited), without changing radius or thresholds. Ca/Ti/Fe explicitly not retrievable without XSM.
 ## Phase 5 — Paper rewrite (Elsevier `elsarticle`, ASR)
 
-- [ ] **5.1** Check current ASR Guide for Authors; record requirements here.
-  - Status / Notes:
-- [ ] **5.2** New title (2–3 options in Open questions).
-  - Status / Notes:
-- [ ] **5.3** Remove all super-resolution content.
-  - Status / Notes:
-- [ ] **5.4** Rewrite methods to match new code exactly.
-  - Status / Notes:
+- [x] **5.1** Check current ASR Guide for Authors; record requirements here.
+  - Status / Notes: Elsevier/ScienceDirect guide pages return 403 to automated fetch. Known/confirmed: Elsevier `elsarticle` (installed locally), free subscription route (APC only for open access), ASR 2025 IF 3.2 / CiteScore 5.6 (COSPAR news), ~51% acceptance (SciRev), ~13 printed pages per paper (2022 issue: 825 pp / 64 papers). Assumed standard Elsevier items: highlights 3–5 × ≤ 85 characters (ours: 5, max 71), keywords, data availability statement, competing-interest declaration, author-year references (elsarticle-harv). **To verify in Editorial Manager at submission:** abstract word limit (ours ≈ 230 words), graphical abstract (optional?), review model.
+- [x] **5.2** New title (2–3 options in Open questions).
+  - Status / Notes: working title in `paper_asr/main.tex`; options in Open question 6.
+- [x] **5.3** Remove all super-resolution content.
+  - Status / Notes: new manuscript `paper_asr/` contains no SR content (sections, figures, tables, abstract, conclusions). Old `paper/` left untouched as the TGRS record.
+- [x] **5.4** Rewrite methods to match new code exactly.
+  - Status / Notes: `sections/{data,model,fitting,synthetic,mapping}.tex`. Equations correspond to `xrf_model.py` (closure, primary, scatter, response), `fitter.py` (model counts, Cash, Fisher, GoF, flags) and `maps.py`.
 - [ ] **5.5** Results: pipeline stats, multiple fit examples, synthetic recovery table, sensitivity tests, maps + quality layers, validation tables.
-  - Status / Notes:
-- [ ] **5.6** Limitations section (no XSM, relative units, footprint resolution, small n).
-  - Status / Notes:
-- [ ] **5.7** TGRS minor points: 24 archives + non-contiguity; rename "Flux Integration"; Fig. 1 caption/legend; 1024 vs 2048 channels; gain/calibration handling.
-  - Status / Notes:
+  - Status / Notes: written (`results.tex`, `validation.tex`); all numbers via `numbers.tex`. Pending: synthetic table rerun with the filter (final config) and the solar-T ×0.8/×1.2 numbers (running).
+- [x] **5.6** Limitations section (no XSM, relative units, footprint resolution, small n).
+  - Status / Notes: `discussion.tex` §Limitations (6 items, incl. SCD QE, flare exclusion by GoF noted in results).
+- [x] **5.7** TGRS minor points: 24 archives + non-contiguity; rename "Flux Integration"; Fig. 1 caption/legend; 1024 vs 2048 channels; gain/calibration handling.
+  - Status / Notes: archives and non-contiguity in data.tex §CLASS; "Flux Integration" and the old Fig. 1 no longer exist (no denoising stage); 1024 vs 2048 explained (all files 2048, 1024 branch unused); gain fitted per month (Table months, model.tex §Detector).
 - [ ] **5.8** Highlights, cover letter draft, data availability statement (new Zenodo release → Open questions, no publish without approval).
-  - Status / Notes:
+  - Status / Notes: highlights.tex, `paper_asr/cover_letter.tex`, data_availability.tex (GitHub + "archived on Zenodo upon acceptance"). Zenodo v2.0.0 → Open question 7.
 - [ ] **5.9** Consistency check: script dumps headline numbers to JSON; cross-check against text.
-  - Status / Notes:
-
+  - Status / Notes: `src/asr/make_numbers.py` → `outputs/asr/headline_numbers.json` + `paper_asr/numbers.tex`; text uses only these macros, so values cannot drift. Remaining: no "??" placeholders in the final PDF.
 ## Phase 6 — Final review
 
-- [ ] **6.1** Hostile-reviewer pass; write `RESPONSE_MAP.md`.
-  - Status / Notes:
+- [x] **6.1** Hostile-reviewer pass; write `RESPONSE_MAP.md`.
+  - Status / Notes: `RESPONSE_MAP.md` maps every TGRS concern (P1–3, F1–5, D1–3, V1–2, S1) plus the self-found issues.
 - [ ] **6.2** Compile PDF; check figures, references, template compliance.
   - Status / Notes:
 - [ ] **6.3** Hand off to Geetesh: summary, final PDF, open questions.
@@ -187,3 +186,10 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
    - (c) Keep the fixed reference spectrum (kT = 1.07 keV) and report Mg/Si and Al/Si as relative maps with a −3…+40% (or larger) solar systematic, with absolute ratios explicitly not interpretable.
 4. **[ANSWERED 2026-10-10: γ-template method]** **Instrumental Al (affects Al/Si, the only element that validated before).** Should the γ-template approach above be the method, or should Al/Si be restricted to spectra/time periods where the sunlit-nightside Al level is low?
 5. **Reference table source.** `data/reference/validation.xlsx` has no citation. Its values match the Lunar Sourcebook (Heiken, Vaniman & French 1991), Table 7.15, average soil compositions. Please confirm, or tell me the real source.
+6. **Title (pick one).**
+   - (a) *Whole-spectrum Poisson fitting of Chandrayaan-2 CLASS X-ray fluorescence spectra with GOES-constrained solar excitation: global Mg/Si and Al/Si maps of the Moon* (current).
+   - (b) *Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS with time-resolved solar excitation from GOES XRS.*
+   - (c) *What can CLASS measure without a solar monitor? Poisson whole-spectrum fitting, instrumental aluminium and global Mg/Si and Al/Si maps.*
+7. **Zenodo v2.0.0 release + GitHub push of `asr-rework`.** Not done; needs your approval. The data availability statement currently says "archived on Zenodo upon acceptance".
+8. **Al/Si map speckle.** A few isolated cells are pulled low by near-boundary fits with small uncertainties (inverse-variance mean, pre-declared). A weighted-median map would remove them, but it would be a post-validation change. Currently kept as is and disclosed only implicitly. Do you want a weighted-median version added as a clearly labelled sensitivity figure?
+
