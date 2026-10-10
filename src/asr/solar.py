@@ -31,6 +31,8 @@ T_GRID_MK = np.geomspace(2.0, 40.0, 61)
 
 # CLASS months -> GOES satellite/year files
 GOES_FILES = {2020: "g16", 2021: "g16", 2022: "g16", 2024: "g18", 2025: "g18", 2026: "g18"}
+# Gap-fill: GOES-16 (science data to 2025-04-06) used only for minutes with no good GOES-18 value.
+GOES_FILL = {2024: "g16", 2025: "g16"}
 
 
 def build_table():
@@ -76,7 +78,8 @@ def build_goes_tem():
     import sunpy.timeseries as ts
     from sunkit_instruments import goes_xrs
     frames = []
-    for year, sat in GOES_FILES.items():
+    jobs = [(y, s, False) for y, s in GOES_FILES.items()] + [(y, s, True) for y, s in GOES_FILL.items()]
+    for year, sat, is_fill in jobs:
         f = glob.glob(os.path.join(ROOT, "data", "goes", f"sci_xrsf-l2-avg1m_{sat}_y{year}_*.nc"))
         if not f:
             print(f"missing GOES file for {year}")
@@ -89,10 +92,15 @@ def build_goes_tem():
         tem = goes_xrs.calculate_temperature_em(g2).to_dataframe()
         out = df[good][["xrsa", "xrsb"]].join(tem)
         out["sat"] = sat
+        out["fill"] = is_fill
         frames.append(out)
         print(year, sat, len(out), "minutes; T median", float(np.nanmedian(out["temperature"])))
     tem = pd.concat(frames)
     tem.index.name = "time"
+    # primary first, then fill: keep the first occurrence of each minute
+    tem = tem.sort_values("fill", kind="stable")
+    tem = tem[~tem.index.duplicated(keep="first")].sort_index()
+    print("fill minutes used:", int(tem["fill"].sum()))
     tem.to_parquet(TEM)
     return tem
 

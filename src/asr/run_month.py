@@ -126,7 +126,7 @@ def calibrate(net, gain0=0.0135, offset0=0.0):
         return out
 
     peak = lambda e: net[int(e / gain0)] * 0.06 * np.sqrt(2 * np.pi) / gain0  # noqa: E731
-    p0 = np.r_[gain0, offset0, 0.045, peak(1.25), peak(1.49), peak(1.74), peak(3.69), 0, 0, 0, 0]
+    p0 = np.r_[gain0, offset0, 0.045, [max(peak(e), 1.0) for e in (1.25, 1.49, 1.74, 3.69)], 0, 0, 0, 0]
     res = optimize.least_squares(lambda p: (model(p) - y) * np.sqrt(w), p0,
                                  bounds=(np.r_[0.0130, -0.1, 0.01, np.zeros(4), -np.inf * np.ones(4)],
                                          np.r_[0.0142, 0.1, 0.15, np.full(4, np.inf), np.inf * np.ones(4)]))
@@ -195,6 +195,18 @@ def main():
     print(f"{tag}: {len(paths)} files, {n_read} readable ({time.perf_counter()-t0:.0f}s)", flush=True)
 
     bkg, inst, binfo = background_templates(rows)
+    # Fallback: months without enough umbra / sunlit nightside exposures use the
+    # 2024-12 template shapes (3,606 umbra, 16,232 sunlit exposures); beta and
+    # gamma are fitted per spectrum, so only the shapes are borrowed.
+    fb = os.path.join(args.out_root, "2024_12")
+    binfo["bkg_template_source"] = tag
+    binfo["inst_template_source"] = tag
+    if binfo["n_night_shadow"] < 100 and tag != "2024_12":
+        bkg = np.load(os.path.join(fb, "background.npy"))
+        binfo["bkg_template_source"] = "2024_12"
+    if binfo["n_night_sunlit"] < 100 and tag != "2024_12":
+        inst = np.load(os.path.join(fb, "instrumental.npy"))
+        binfo["inst_template_source"] = "2024_12"
     np.save(os.path.join(out_dir, "background.npy"), bkg)
     np.save(os.path.join(out_dir, "instrumental.npy"), inst)
     valid = [r for r in rows if r["sat_alt"] > 0 and r["exposure"] > 0 and r["n_scd"] > 0]

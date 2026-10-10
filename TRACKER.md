@@ -101,7 +101,7 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 - [ ] **2.1** Apply new selection criterion; record counts at each stage (raw → dayside → QC → fitted).
   - Status / Notes:
 - [ ] **2.2** Full fit; save per-spectrum results with uncertainties and flags.
-  - Status / Notes:
+  - Status / Notes: RUNNING (`src/asr/run_all.py`, started 2026-10-10 ~06:05; log `outputs/asr/run_all_log.txt`; ~25 ms/spectrum wall with 12 workers → ~7 h). To rerun after the loop: 2020/12 and 2021/02 (calibration init bug, fixed), 2022/03 and 2024/03 (no umbra exposures → fallback template added after they ran).
 - [ ] **2.3** Selection-threshold sensitivity (subset OK) and solar-temperature sensitivity.
   - Status / Notes:
 
@@ -170,6 +170,10 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 | 2026-10-10 | 1.8 | Ca/Si is fitted but **not claimed** per spectrum. | Final-config synthetic: +30% bias at the right T, ×9 / →0 under ±20–30% T error. |
 | 2026-10-10 | 2 | **Pre-declared (before any validation):** mapping set = quality == 0 (Si-window counts ≥ 300, abs(GoF z) ≤ 3, Mg/Si & Al/Si not at bound, core cond ≤ 1e4, valid geometry, GOES T available). Threshold sensitivity: min counts 300 / 1000 / 3000. Solar-T sensitivity: GOES T × 0.8 and × 1.2 on a 3-month subset. | PLAN §4 selection; fixed before 4.1/4.2. |
 | 2026-10-10 | 3–4 | **Pre-declared:** maps on a 2° equal-angle grid, plus 5° for the GRS comparison. Per-cell statistic = inverse-variance-weighted mean of footprint ratios, footprints rasterised by their 4 corners. Observed coverage = cells hit by ≥1 quality-0 footprint; no infill for statistics. Validation radii 1° / 2° / 5° (primary = 2°), bootstrap 95% CI (10,000), leave-one-site-out, block bootstrap with 20° blocks for GRS. Element claimed only if Pearson r > 0 with 95% CI excluding 0 in BOTH Apollo/Luna (primary radius) and GRS. | Honesty rule: fix analysis choices before seeing numbers. |
+| 2026-10-10 | 2 | **Pre-declared:** GOES temperature reliable only if XRS-B (1–8 Å) ≥ 1e-7 W m⁻² (B1). Spectra below → quality bit 256 (excluded from maps). Sensitivity: B3 (3e-7) cut. | GOES-16 T below B1 is pinned at the 2.81 MK table floor (A-class) or diverges (A3–B1, 95th pct 22 MK, max 2.6e5 MK); see `goes_tem.parquet` by class. |
+| 2026-10-10 | 4.1 | Reference compositions in `validation.xlsx` identified as average soil compositions (Lunar Sourcebook, Heiken et al. 1991, Table 7.15) — to be confirmed by Geetesh. | Values match the Sourcebook table; sheet has no source column. |
+| 2026-10-10 | 2 | Months with < 100 umbra (or sunlit) nightside exposures borrow the 2024-12 particle (or instrumental) template shape; recorded per month in calib.json (`*_template_source`). | 2022-03 has 0 umbra exposures (empty template broke every fit); β, γ are fitted, so only shapes are borrowed. |
+| 2026-10-10 | 2 | GOES-16 used to fill GOES-18 gaps in 2024–2025 (24,694 minutes). Cross-check over 1–15 Jun 2024 (20,145 minutes ≥ B1): median T16/T18 = 1.005 (16–84%: 0.991–1.030), XRS-B ratio 1.002. | GOES-18 good-minute coverage only 80% in 2024-03 and 85% in 2024-04. |
 | 2026-10-10 | 0 | New rework code goes in `src/asr/`, outputs in gitignored `outputs/asr/`; old `src/fitting/` left intact for baseline reproduction. | Keeps the old pipeline runnable for the 0.2 baseline and for reviewers' comparison. |
 
 ## Open questions for Geetesh
@@ -181,3 +185,4 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
    - (b) Chandrayaan-2 **XSM** L1/L2 spectra from PRADAN (needs your PRADAN login). This is the proper answer, but the PLAN puts a full XSM correction out of scope.
    - (c) Keep the fixed reference spectrum (kT = 1.07 keV) and report Mg/Si and Al/Si as relative maps with a −3…+40% (or larger) solar systematic, with absolute ratios explicitly not interpretable.
 4. **[ANSWERED 2026-10-10: γ-template method]** **Instrumental Al (affects Al/Si, the only element that validated before).** Should the γ-template approach above be the method, or should Al/Si be restricted to spectra/time periods where the sunlit-nightside Al level is low?
+5. **Reference table source.** `data/reference/validation.xlsx` has no citation. Its values match the Lunar Sourcebook (Heiken, Vaniman & French 1991), Table 7.15, average soil compositions. Please confirm, or tell me the real source.

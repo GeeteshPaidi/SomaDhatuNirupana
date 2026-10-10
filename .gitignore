@@ -53,3 +53,4 @@ data/raw/**/*.xml
 outputs/asr/
 reviews/
 data/goes/
+data/grs/

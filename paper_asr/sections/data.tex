@@ -1,0 +1,36 @@
+\section{Data}\label{sec:data}
+
+\subsection{CLASS Level-1 spectra}\label{sec:class}
+The Chandrayaan-2 Large Area Soft X-ray Spectrometer (CLASS) carries sixteen e2v CCD-236 swept-charge devices (SCDs) of \SI{4}{cm^2} each, behind a collimator that defines a ground footprint of $\approx$\SI{12.5}{km} from the nominal \SI{100}{km} orbit \citep{Narendranath2014,Pillai2021}. We use the publicly released Level-1 product from the PRADAN portal of the Indian Space Science Data Centre. Each Level-1 file is an OGIP pulse-height table of 2048 channels holding the counts summed over the SCDs listed in the \texttt{SCD\_USED} keyword for one \SI{8}{s} integration, together with the four footprint corner coordinates, the solar incidence angle \texttt{SOLARANG}, the emission angle \texttt{EMISNANG}, the exposure time, detector temperature and the processing-software version.
+
+We downloaded every monthly archive available to us: \NMonths{} archives (December 2020; January and February 2021; March 2022; March 2024; and every month from November 2024 to May 2026), totalling \NRawFiles{} Level-1 exposures. The archives are non-contiguous because CLASS observes only when the spacecraft attitude, power and data-volume budgets allow, and because releases on PRADAN lag the observations. The 2020--2022 months fall near the minimum of solar cycle 25 \citep{Hathaway2015} and contribute few usable spectra (\cref{sec:selection}).
+
+A survey of \NHeaderSample{} headers sampled uniformly from all months (\cref{tab:headers}) shows that every file has 2048 channels and a nominal gain keyword of \SI{13.5}{eV/channel}. No 1024-channel products occur in this release, so the 1024-channel branch of earlier processing is not used. The emission angle is $<\SI{3e-6}{\degree}$, so the instrument views at nadir. Exposures are \SI{8}{s} except for \PctPartialExp{}\% partial integrations (\SIrange{1.8}{7.8}{s}). The number of SCDs summed varies: \PctNotAllSCD{}\% of exposures use fewer than 16 devices, so the effective area changes from file to file. No response matrix (\texttt{RESPFILE}), ancillary response (\texttt{ANCRFILE}) or efficiency information ships with the release, and the background keyword is \texttt{NONE}.
+
+\begin{table}[t]
+\centering
+\caption{CLASS Level-1 header survey (\NHeaderSample{} files, 200 per month).}\label{tab:headers}
+\begin{tabular}{ll}
+\toprule
+Keyword & Value / range \\
+\midrule
+\texttt{DETCHANS} & 2048 in all files \\
+\texttt{GAIN} & \SI{13.5}{eV/channel} in all files (fitted in-flight value: \cref{sec:calib}) \\
+\texttt{EXPOSURE} & \SI{8}{s} (\PctFullExp{}\%); partial integrations \SIrange{1.8}{7.8}{s} \\
+\texttt{SCD\_USED} & 16 SCDs in \PctAllSCD{}\%; 1--15 otherwise \\
+\texttt{EMISNANG} & $<\SI{3e-6}{\degree}$ (nadir) \\
+\texttt{SOLARANG} & \SIrange{0}{166}{\degree} (= \texttt{PHASEANG}) \\
+\texttt{TEMP} & \SIrange{-54}{-22}{\celsius} (median \SI{-41}{\celsius}) \\
+\texttt{SW\_VERSN} & 2.0 (Dec 2020--Feb 2021), 2.1 (later) \\
+\texttt{RESPFILE}, \texttt{ANCRFILE} & empty \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{GOES XRS solar soft X-ray data}\label{sec:goes}
+CLASS has no on-board solar monitor of its own. We characterise the incident solar spectrum using the GOES X-Ray Sensor (XRS) 1-minute science-quality averages from NOAA/NCEI (GOES-16 for 2020--2022; GOES-18 for 2024--2026). The Moon and the Earth see the same solar disk to within a fraction of a degree. For each minute we derive the isothermal temperature $T$ and emission measure from the ratio of the \SIrange{0.05}{0.4}{nm} and \SIrange{0.1}{0.8}{nm} channels \citep{White2005}, using the CHIANTI-based response tables with coronal abundances implemented in \texttt{sunkit-instruments} \citep{SunPy2020}. Each CLASS exposure is assigned the values of the nearest GOES minute to its mid-time (tolerance \SI{1}{min}).
+
+Below the B1 flux level ($F_{0.1-0.8\,\mathrm{nm}} < \SI{1e-7}{W\,m^{-2}}$), the GOES-16 ratio temperature is unreliable: it is either pinned at the lower edge of the response table (\SI{2.8}{MK}) or diverges (\cref{sec:discussion}). Exposures taken below B1 are therefore excluded from all maps. This threshold was fixed before any comparison with ground truth.
+
+\subsection{Calibration and validation data}\label{sec:refdata}
+For validation we use the average soil compositions of the Apollo 11, 12, 14, 15, 16 and 17 and Luna 16, 20 and 24 landing sites \citep{Heiken1991} (\cref{tab:sites}), and the Lunar Prospector gamma-ray spectrometer (GRS) oxide maps of \citet{Prettyman2006}. The latter are distributed by the PDS Geosciences Node on 5\textdegree{} equal-area pixels \citep{PrettymanPDS2012}. Oxide weight fractions are converted to element weight ratios relative to Si using standard stoichiometric factors.

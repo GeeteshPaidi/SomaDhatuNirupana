@@ -1,0 +1,14 @@
+\section{Mapping}\label{sec:mapping}
+
+\paragraph{Gridding} Footprints are placed on a 2\textdegree{} latitude--longitude grid. Each footprint quadrilateral is sampled with a $5\times5$ bilinear grid of points between its four corners, and its weight is shared equally among the grid cells containing those points. Footprints are much smaller than grid cells: the median footprint sides are \FootprintA{} and \FootprintB{}\,km, against \SI{60.6}{km} per degree at the equator. Shared weight therefore matters only near cell edges.
+
+\paragraph{Cell values and quality layers} Each cell value is the inverse-variance-weighted mean of the footprint ratios. Three quality layers accompany each map:
+\begin{itemize}
+\item the number of footprints contributing to the cell;
+\item the standard error of the weighted mean;
+\item the weighted scatter of the footprint ratios.
+\end{itemize}
+
+\paragraph{Coverage} We report coverage separately for all dayside footprints and for the quality-0 mapping set. We give it both as a fraction of grid cells and as a fraction of lunar surface area, where cells are weighted by $\cos(\text{latitude})$. No smoothing, interpolation or infill enters any statistic, map value or validation number in this paper.
+
+\paragraph{Resolution} The effective spatial resolution of a single measurement is the footprint, about \SI{12.5}{km} at \SI{100}{km} altitude. The 2\textdegree{} cells (\SI{60}{km} at the equator) set the resolution of the maps. The grid spacing should not be read as a resolution finer than either of these.

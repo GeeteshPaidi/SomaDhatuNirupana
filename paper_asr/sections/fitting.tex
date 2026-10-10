@@ -1,0 +1,35 @@
+\section{Spectral fitting}\label{sec:fitting}
+
+\subsection{Likelihood}\label{sec:likelihood}
+Each exposure is fitted on its raw counts $d_k$ without smoothing, denoising or background subtraction. The fitted channels are those with $E_k\in[1.15,7.5]$\,keV. The lower limit avoids the Na K$\alpha$ line at \SI{1.04}{keV} and a steep excess below \SI{1.1}{keV} that is present in every stacked spectrum. One additional bin holds the summed counts in \SIrange{8}{20}{keV}, where no lunar fluorescence is expected. That bin fixes the particle-background level without depending on the background shape. The expected counts are
+\begin{equation}
+m_k = A\Big[\sum_\ell \frac{P_\ell}{P_\mathrm{ref}} R_{\ell k} + B\,\frac{(\mathcal{F}\Sigma)_k}{\Sigma_\mathrm{ref}}\Big]
++ \big(\beta\,b^{\mathrm{p}}_k + \gamma\,b^{\mathrm{s}}_k\big)\,t\,\frac{n_\mathrm{SCD}}{16},
+\label{eq:model}
+\end{equation}
+where $t$ is the exposure, $n_\mathrm{SCD}$ is the number of SCDs summed, $\mathcal{F}$ is the detector folding of \cref{eq:response}, and $P_\mathrm{ref}$, $\Sigma_\mathrm{ref}$ are fixed reference normalisations. The parameter vector is $\theta=(A,r_\mathrm{Mg},r_\mathrm{Al},r_\mathrm{Ca},B,\beta,\gamma)$. All components are non-negative, the ratios are bounded to $[0,5]$, and $\beta\le10$.
+
+Si is the reference element, so only ratios and one amplitude are fitted. This removes the scale degeneracy of fitting absolute concentrations together with a free global scale. Ti/Si and Fe/Si are held at global lunar-soil means (0.04 and 0.37) and enter only through the matrix. At GOES temperatures of 3--\SI{8}{MK} the solar flux above the Ti and Fe K edges is too small for an \SI{8}{s} spectrum to constrain them; leaving them free made 92\% of test fits ill-conditioned. We minimise the Cash statistic \citep{Cash1979}
+\begin{equation}
+C = 2\sum_k \big[m_k - d_k + d_k\ln(d_k/m_k)\big]
+\label{eq:cash}
+\end{equation}
+with a trust-region reflective least-squares solver applied to the signed deviance residuals, whose sum of squares equals $C$.
+
+\subsection{Uncertainties, goodness of fit and quality flags}\label{sec:uncert}
+Parameter covariances are taken from the inverse Poisson Fisher matrix $\mathcal{I}=J^\top\mathrm{diag}(1/m)J$, where $J=\partial m/\partial\theta$ is computed by finite differences at the optimum. We also record the correlation matrix and the condition number of its core block $(A,r_\mathrm{Mg},r_\mathrm{Al},B,\beta,\gamma)$. For goodness of fit we compare $C$ over the main window with its expectation and variance for the fitted model, computed exactly for Poisson counts \citep{Kaastra2017}: $z=(C-\langle C\rangle)/\sqrt{\mathrm{Var}\,C}$.
+
+A spectrum enters the maps (quality $=0$) only if all of the following hold:
+\begin{itemize}
+\item the fit converged;
+\item there are at least 300 counts in the \SIrange{1.15}{7.5}{keV} window;
+\item $|z|\le3$;
+\item neither Mg/Si nor Al/Si is at a bound;
+\item the core condition number is below $10^4$;
+\item the geometry is valid ($0.5^\circ<\psi_1\le 90^\circ$, altitude $>0$);
+\item a reliable GOES temperature exists (flux $\ge$ B1).
+\end{itemize}
+These criteria, the 2\textdegree{} mapping grid and the validation radii were fixed and logged before any comparison with reference data. The count threshold is varied (300, 1000, 3000) as a sensitivity test. No flux-percentile selection is applied.
+
+\subsection{Products}\label{sec:products}
+Ca/Si is fitted because it shapes the model between the Si and Ca lines, but it is not reported. The synthetic tests of \cref{sec:synthetic} show it is biased even at the correct temperature and changes by an order of magnitude under realistic temperature errors. The products are Mg/Si and Al/Si weight ratios with per-footprint uncertainties.

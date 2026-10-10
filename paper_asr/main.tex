@@ -1,0 +1,70 @@
+%% Advances in Space Research submission (Elsevier elsarticle).
+%% All numbers in the text are macros defined in numbers.tex, which is
+%% generated from the pipeline outputs by src/asr/make_numbers.py.
+\documentclass[preprint,12pt,authoryear]{elsarticle}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage{lineno}
+\usepackage[capitalize]{cleveref}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\linenumbers
+
+\input{numbers}
+
+\journal{Advances in Space Research}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Whole-spectrum Poisson fitting of Chandrayaan-2 CLASS X-ray fluorescence spectra with GOES-constrained solar excitation: global Mg/Si and Al/Si maps of the Moon}
+
+\author[ind]{Smarak Kanjilal}
+\author[ind]{Subarno Maji}
+\author[ind]{Paidi Geetesh Chandra\corref{cor1}}
+\ead{paidigeeteshchandra@gmail.com}
+\cortext[cor1]{Corresponding author. All authors contributed equally to this work.}
+\affiliation[ind]{organization={Independent Researcher},country={India}}
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\begin{highlights}
+\input{sections/highlights}
+\end{highlights}
+
+\begin{keyword}
+Moon \sep X-ray fluorescence \sep Chandrayaan-2 CLASS \sep solar X-ray spectrum \sep GOES XRS \sep lunar surface composition
+\end{keyword}
+
+\end{frontmatter}
+
+\input{sections/introduction}
+\input{sections/data}
+\input{sections/model}
+\input{sections/fitting}
+\input{sections/synthetic}
+\input{sections/mapping}
+\input{sections/results}
+\input{sections/validation}
+\input{sections/discussion}
+\input{sections/conclusions}
+
+\section*{Data availability}
+\input{sections/data_availability}
+
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Acknowledgements}
+We thank ISRO/ISSDC for public access to Chandrayaan-2 CLASS data through PRADAN, NOAA/NCEI for GOES XRS science-quality data, and the PDS Geosciences Node for the Lunar Prospector GRS products. This research used the open-source packages xraylib, SunPy, sunkit-instruments, sunkit-spex, NumPy, SciPy and Astropy.
+
+\bibliographystyle{elsarticle-harv}
+\bibliography{references}
+
+\end{document}

@@ -1,0 +1,54 @@
+\section{Forward model}\label{sec:model}
+
+We model the lunar regolith within one footprint as a flat, homogeneous, infinitely thick target. Its composition is parameterised by element-to-silicon weight ratios $r_i = C_i/C_\mathrm{Si}$, and the observed spectrum is the sum of four components: fluorescence lines, scattered solar continuum and lines, particle background, and a solar-driven instrumental component. All atomic parameters come from xraylib 4.2 \citep{Schoonjans2011}.
+
+\subsection{Composition closure}\label{sec:closure}
+The fitted elements are Mg, Al, Ca, Ti and Fe, each expressed relative to Si. Each element is assumed to be present as its common lunar oxide (SiO$_2$, MgO, Al$_2$O$_3$, CaO, TiO$_2$, FeO). Minor oxides are fixed at typical soil values (Na$_2$O 0.5, K$_2$O 0.1, MnO 0.15, Cr$_2$O$_3$ 0.2 wt\%). Requiring the oxides to sum to unity fixes the absolute Si weight fraction:
+\begin{equation}
+C_\mathrm{Si} = \frac{1 - \sum_m w_m^\mathrm{ox}}{f_\mathrm{Si} + \sum_i r_i f_i},
+\label{eq:closure}
+\end{equation}
+where $f_i$ is the oxide-to-element mass factor and $w_m^\mathrm{ox}$ are the fixed minor-oxide fractions. Oxygen follows stoichiometrically, so it is not a free parameter. The matrix mass attenuation coefficient is $\mu(E)=\sum_j C_j\,\mu_j(E)$, with $\mu_j$ the total mass attenuation coefficient of element $j$.
+
+\subsection{Incident solar spectrum}\label{sec:solar}
+The incident photon spectrum $S(E;T)$ is the isothermal CHIANTI spectrum, lines plus continuum with coronal abundances \citep{Dere1997}, evaluated with \texttt{sunkit-spex} at the GOES temperature of each exposure (\cref{sec:goes}). It is tabulated on a \SI{5}{eV} grid from \SIrange{1.01}{20}{keV} at 61 logarithmically spaced temperatures between 2 and \SI{40}{MK}, and interpolated in $\log T$. Its absolute normalisation is absorbed by a free amplitude.
+
+Line emission dominates the excitation of the light elements. Between 3 and \SI{15}{MK}, \LineFracMgLo--\LineFracMgHi\% of the photon flux above the Mg K edge, and \LineFracSiLo--\LineFracSiHi\% above the Si K edge, is in lines, mainly the He-like Mg\,\textsc{xi}, Si\,\textsc{xiii} and S\,\textsc{xv} complexes. A bremsstrahlung-only spectrum, as is often assumed when no solar monitor is available, therefore misrepresents the relative excitation of Mg, Al and Si (\cref{sec:discussion}).
+
+\subsection{Primary fluorescence}\label{sec:primary}
+For line $\ell$ (K$\alpha$ or K$\beta$) of element $i$, the primary fluorescence intensity follows \citet{Sherman1955}:
+\begin{equation}
+P_{i\ell} = C_i\,\omega_{i,K}\,p_{i\ell}\int_{E_{K,i}}^{E_\mathrm{max}}
+\frac{S(E;T)\,\tau_{i,K}(E)}{\mu(E)/\sin\psi_1 + \mu(E_{i\ell})/\sin\psi_2}\,\mathrm{d}E ,
+\label{eq:primary}
+\end{equation}
+where $\tau_{i,K}$ is the K-shell photoionisation cross-section, $\omega_{i,K}$ is the K-shell fluorescence yield, $p_{i\ell}$ is the radiative rate of the line, and $E_{K,i}$ is the K-edge energy. The incidence elevation is $\psi_1 = 90^\circ - \texttt{SOLARANG}$, and the emergence elevation is $\psi_2=90^\circ$ (nadir). The product $\omega_{i,K}p_{i\ell}\tau_{i,K}$ reproduces the xraylib fluorescence-line cross-section to within 5\%. The integral is evaluated on the \SI{5}{eV} grid up to $E_\mathrm{max}=\SI{15}{keV}$; a unit test shows this agrees with adaptive quadrature to within 1\% and with a \SI{1}{eV} grid to within 0.3\%. Because the integrand depends on the composition through $\mu$, \cref{eq:primary} couples all elements. This coupling is the matrix effect; ratios of line intensities are therefore not equal to ratios of concentrations.
+
+\subsection{Secondary fluorescence}\label{sec:secondary}
+Fluorescence of element $i$ excited by line $m$ of element $j$ ($E_{jm}>E_{K,i}$) is computed with the thick-target expression of \citet{deBoer1990}, which is linear in both $C_i$ and $C_j$. Over \SIrange{3}{15}{MK} and both mare and highland compositions, the secondary contribution to every K$\alpha$ line is at most \SecMaxPct\% of the primary. We therefore omit it from the fitted model. We do, however, include it when generating the synthetic spectra of \cref{sec:synthetic}, so the bias from omitting it is part of the measured recovery bias.
+
+\subsection{Scattered solar spectrum}\label{sec:scatter}
+Coherent and incoherent scattering of the solar spectrum by the regolith contributes a continuum, and at the GOES temperatures encountered, scattered solar lines as well:
+\begin{equation}
+\Sigma(E) = S(E;T)\,\frac{\sigma_s(E)}{\mu(E)/\sin\psi_1 + \mu(E)/\sin\psi_2},
+\label{eq:scatter}
+\end{equation}
+where $\sigma_s=\sum_j C_j(\sigma_{\mathrm{coh},j}+\sigma_{\mathrm{inc},j})$. The angular dependence of the differential scattering cross-sections is not modelled. Instead, the scattered component carries its own free amplitude $B$.
+
+\subsection{Detector response and energy scale}\label{sec:detector}\label{sec:calib}
+The centre energy of channel $k$ is $E_k=g\,k+o$. Each line is distributed over channels by a Gaussian integrated over the channel boundaries $E_k^\pm=E_k\pm g/2$:
+\begin{equation}
+R_{\ell k} = \frac{\Phi\!\left(\frac{E_k^+-E_\ell}{\sigma_\ell}\right)-\Phi\!\left(\frac{E_k^--E_\ell}{\sigma_\ell}\right)}{\mathrm{erf}(5/\sqrt{2})},
+\qquad \sigma_\ell^2=\sigma_0^2+F\,w\,E_\ell ,
+\label{eq:response}
+\end{equation}
+where $\Phi$ is the standard normal cumulative distribution, truncated at $\pm5\sigma$, $F=0.115$ is the Fano factor of silicon and $w=\SI{3.68}{eV}$. The normalisation conserves line area to $10^{-9}$ (unit test). The scattered spectrum, \cref{eq:scatter}, is folded through the same response on the \SI{5}{eV} grid.
+
+The gain $g$, offset $o$ and noise term $\sigma_0$ are determined for each month. We stack all 16-SCD dayside exposures of the month, subtract the particle background, and fit the Mg, Al, Si and Ca K lines jointly. For example, for December 2024 (\NStackDec{} exposures) we find $g=\SI{\GainDec}{eV/channel}$, $o=\SI{\OffsetDec}{eV}$ and $\sigma_0=\SI{\SigmaZeroDec}{eV}$, i.e.\ \SI{\FwhmAlDec}{eV} FWHM at Al K$\alpha$. The fitted gain is about 1.6\% larger than the header value of \SI{13.5}{eV/channel}. Using the header gain shifts the Si K$\alpha$ centroid by about two channels. The per-month values are listed in the supplementary material. No energy-dependent detector efficiency is applied, because none is published with the data (\cref{sec:limitations}).
+
+\subsection{Background: particles and a solar-driven instrumental component}\label{sec:background}
+Earlier analyses of these data subtracted the mean nightside spectrum (\texttt{SOLARANG} $\geq 90^\circ$). We find that this mean contains two physically distinct components (\cref{fig:background}).
+
+The first is the particle background, a smooth continuum with weak features. It dominates exposures taken while the spacecraft is in the lunar umbra, i.e.\ when \texttt{SOLARANG} exceeds $90^\circ+\arccos[R_\mathrm{M}/(R_\mathrm{M}+h)]\approx\SI{109}{\degree}$ at $h=\SI{100}{km}$. The second is a strong Al K$\alpha$ line, together with a soft continuum and a feature near \SI{6.7}{keV}. This second component appears only while the spacecraft itself is sunlit. In December 2024 the median background-corrected Al K$\alpha$ rate of nightside exposures is \SI{\AlSunlit}{counts\,s^{-1}} when the spacecraft is sunlit ($n=\NSunlitDec$), against \SI{\AlUmbra}{counts\,s^{-1}} in the umbra ($n=\NUmbraDec$). Its rate correlates with solar proxies (Spearman $\rho=\RhoAlSoft$ with the \SIrange{0.6}{0.9}{keV} counts) but not with the \SIrange{8}{20}{keV} particle rate ($\rho=\RhoAlHard$), and it varies on time scales shorter than \SI{30}{min}. We interpret it as solar X-ray fluorescence of aluminium in the instrument structure. On the dayside it is superposed on the lunar Al line with a comparable magnitude.
+
+We therefore build two templates per month, in units of counts\,s$^{-1}$ per 16 SCDs. The first is $b^{\mathrm{p}}_k$, the mean umbra spectrum. The second is $b^{\mathrm{s}}_k$, the mean sunlit-nightside spectrum minus $b^{\mathrm{p}}_k$ scaled to the same \SIrange{8}{20}{keV} rate. Their amplitudes $\beta$ and $\gamma$ are fitted for every spectrum. Months with fewer than 100 umbra (or sunlit) nightside exposures use the December 2024 template shape. The instrumental amplitude cannot be predicted from GOES with useful accuracy: the GOES-predicted Al-exciting flux explains it only to a factor of $\approx$2 (Spearman $\rho=\RhoAlGoes$), with an angle-dependent scale.
