@@ -1,7 +1,7 @@
 {
   "title": "Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS with time-resolved solar excitation from GOES XRS",
   "description": "Processing chain, data products and manuscript source for global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS X-ray fluorescence spectra. Every Level-1 spectrum is fitted on raw counts with a Poisson (Cash) likelihood using a fundamental-parameter forward model (Sherman primary fluorescence, scattered solar spectrum, CLASS filter transmission, erf-binned detector response, particle-background template). The incident solar spectrum is an isothermal CHIANTI spectrum at the GOES XRS temperature of each exposure. Includes Fisher uncertainties, goodness-of-fit and quality flags, 2-degree maps with quality layers, and validation against Apollo/Luna returned soils and Lunar Prospector GRS. Manuscript prepared for Advances in Space Research.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "creators": [
     {
       "name": "Kanjilal, Smarak",
