@@ -137,7 +137,7 @@ New rework code lives in `src/asr/`; rework outputs go to `outputs/asr/` (gitign
 - [x] **5.7** TGRS minor points: 24 archives + non-contiguity; rename "Flux Integration"; Fig. 1 caption/legend; 1024 vs 2048 channels; gain/calibration handling.
   - Status / Notes: archives and non-contiguity in data.tex §CLASS; "Flux Integration" and the old Fig. 1 no longer exist (no denoising stage); 1024 vs 2048 explained (all files 2048, 1024 branch unused); gain fitted per month (Table months, model.tex §Detector).
 - [x] **5.8** Highlights, cover letter draft, data availability statement (new Zenodo release → Open questions, no publish without approval).
-  - Status / Notes: highlights.tex, `paper_asr/cover_letter.tex`, data_availability.tex now cites the Zenodo concept DOI 10.5281/zenodo.21993207. v2.0.0 released 2026-10-11 (merged to master, GitHub release → Zenodo) on Geetesh's request; `products/` holds the released mapping set, maps and validation tables.
+  - Status / Notes: highlights.tex, `paper_asr/cover_letter.tex`, data_availability.tex now cites the Zenodo concept DOI 10.5281/zenodo.21993207. v2.0.0 released 2026-10-11 (merged to master at f670bc5, GitHub release → Zenodo version DOI 10.5281/zenodo.23290904) on Geetesh's request; `products/` holds the released mapping set, maps and validation tables.
 - [x] **5.9** Consistency check: script dumps headline numbers to JSON; cross-check against text.
   - Status / Notes: `src/asr/make_numbers.py` → `outputs/asr/headline_numbers.json` + `paper_asr/numbers.tex`; text uses only these macros, so values cannot drift. Verified: no "??" in numbers.tex or the compiled PDF (commit b34a894).
 ## Phase 6 — Final review
