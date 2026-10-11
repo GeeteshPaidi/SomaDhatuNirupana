@@ -1,8 +1,8 @@
 """
-Phase 3: element/Si maps with quality layers (TRACKER 3.1-3.3), plus the
-Phase 2.1 pipeline-stage counts.
+Element/Si maps with quality layers, plus the
+pipeline-stage counts.
 
-Mapping set (pre-declared, TRACKER decisions log): quality == 0 and GOES
+Mapping set (pre-declared): quality == 0 and GOES
 XRS-B >= 1e-7 W/m^2 (B1). Each footprint quadrilateral is rasterised by
 sampling a 5x5 bilinear grid of points inside its 4 corners; the footprint
 contributes to every grid cell those points fall in (weight split equally
@@ -49,7 +49,7 @@ def load_fits(months_dir=None, min_counts=300, min_xrsb=GOES_MIN_XRSB):
     q = df["quality"].fillna(-1).astype(int).values
     unreliable = ~(df["goes_xrsb"].values >= min_xrsb)
     q = np.where(unreliable & (q >= 0), q | Q_SOLAR_UNRELIABLE, q)
-    # Boundary bug fix (found after the first validation, logged in TRACKER): a ratio
+    # Boundary bug fix (found after the first validation, disclosed in the paper): a ratio
     # pinned within 1e-3 of zero has no valid Fisher uncertainty (sd collapses), but the
     # fitter's at-bound test used 1e-6. Treat r < 1e-3 (or > 4.999) for Mg/Si or Al/Si
     # as at bound (quality bit 8).

@@ -32,7 +32,7 @@ CAL = dict(gain=0.01363, offset=0.017, sigma0=0.045)
 SC_FRAC_3KEV = 0.004
 GAMMA_TRUE = 0.5
 FIXED = None  # None -> fitter default (Ti, Fe fixed); {} -> all free
-# Lunar composition ranges (weight ratios to Si), from PLAN.md sanity ranges / Apollo soils.
+# Lunar composition ranges (weight ratios to Si), from Apollo soils.
 RANGES = {"Mg": (0.10, 0.35), "Al": (0.20, 0.80), "Ca": (0.30, 0.60), "Ti": (0.005, 0.30), "Fe": (0.10, 0.80)}
 
 _G = {}

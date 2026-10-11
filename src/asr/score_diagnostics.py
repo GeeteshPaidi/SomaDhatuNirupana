@@ -9,7 +9,7 @@ no analysis choice is changed by this script)
    and Spearman-Brown-correct to full-sample reliability.
 3. GRS reliability from its own error matrix: 1 - mean(var_err)/var(observed ratio).
 4. Attenuation ceiling for the CLASS-GRS correlation: sqrt(rel_CLASS * rel_GRS).
-5. Old (TGRS) pipeline against GRS on the same pixels (median ratio of the
+5. Earlier processing of the same data against GRS on the same pixels (median ratio of the
    855,190-row expanded result), as a baseline.
 Output: outputs/asr/validation/score_diagnostics.json
 """
@@ -22,9 +22,8 @@ import pandas as pd
 from scipy.stats import pearsonr
 
 sys.path.insert(0, os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import validate_asr as va  # noqa: E402
-import validate as oldval  # noqa: E402
+import reference  # noqa: E402
 
 ROOT = va.ROOT
 OUT = va.OUT
@@ -63,7 +62,7 @@ def main():
     args = ap.parse_args()
     out = {}
     g = va.read_grs(os.path.join(ROOT, "data", "grs", "lpgrs_high1_elem_abundance_5deg.tab"))
-    ref = oldval.load_reference(os.path.join(ROOT, "data", "reference", "validation.xlsx"))
+    ref = reference.load_reference(os.path.join(ROOT, "data", "reference", "validation.xlsx"))
     # 1. GRS vs sites
     rows = []
     for s, info in ref.items():

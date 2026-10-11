@@ -1,13 +1,12 @@
 """
-Phase 4 validation (TRACKER 4.1, 4.2), with analysis choices fixed in the
-decisions log before any numbers were computed.
+Validation, with analysis choices fixed before any numbers were computed.
 
-4.1 Apollo/Luna (9 sites, average soil compositions, data/reference/validation.xlsx):
+Apollo/Luna (9 sites, average soil compositions, data/reference/validation.xlsx):
     radii 1, 2, 5 deg (primary 2 deg, great-circle on footprint centres),
     per-site inverse-variance-weighted mean ratio + propagated standard error
     (and site scatter), Pearson/Spearman r, bootstrap 95% CI over sites
     (10,000 resamples), leave-one-site-out r range.
-4.2 Lunar Prospector GRS (Prettyman et al. 2006; PDS LP-L-GRS-5-ELEM-ABUNDANCE-V1.0),
+Lunar Prospector GRS (Prettyman et al. 2006; PDS LP-L-GRS-5-ELEM-ABUNDANCE-V1.0),
     native 5-deg equal-area pixels: CLASS weighted mean of footprint centres in
     each pixel (>= MIN_FP footprints) vs GRS Mg/Si, Al/Si weight ratios from
     oxides. Pearson + Spearman with spatial block bootstrap (20x20 deg blocks).
@@ -25,8 +24,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-import validate as oldval  # noqa: E402  (reference loader + site coordinates)
+sys.path.insert(0, os.path.dirname(__file__))
+import reference  # noqa: E402  (reference loader + site coordinates)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "outputs", "asr", "validation")
@@ -80,7 +79,7 @@ def corr_with_ci(x, y, rng, n_boot=N_BOOT, groups=None):
 
 
 def sites(ms, rng):
-    ref = oldval.load_reference(os.path.join(ROOT, "data", "reference", "validation.xlsx"))
+    ref = reference.load_reference(os.path.join(ROOT, "data", "reference", "validation.xlsx"))
     rows = []
     for site, info in ref.items():
         d = gc_dist_deg(ms["clat"].values, ms["clon"].values, info["lat"], info["lon"])

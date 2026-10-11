@@ -1,5 +1,5 @@
 """
-Per-month pipeline for the ASR rework (TRACKER 1.8 / 2.x).
+Per-month pipeline.
 
   1. Read every L1 FITS header + raw counts for one month.
   2. Nightside background template: mean of counts / (EXPOSURE * n_SCD/16)

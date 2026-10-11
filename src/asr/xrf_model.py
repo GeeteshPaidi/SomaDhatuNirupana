@@ -1,6 +1,5 @@
 """
-Simplified fundamental-parameter forward model for CLASS lunar XRF spectra
-(ASR rework, PLAN.md section 4).
+Simplified fundamental-parameter forward model for CLASS lunar XRF spectra
 
 Physics (thick, flat, homogeneous target; photon counts per channel)
 ---------------------------------------------------------------------

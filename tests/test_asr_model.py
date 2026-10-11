@@ -1,4 +1,4 @@
-"""Unit tests for the ASR-rework forward model (TRACKER tasks 1.2, 1.3, 1.4)."""
+"""Unit tests for the forward model and detector response."""
 import os
 import sys
 

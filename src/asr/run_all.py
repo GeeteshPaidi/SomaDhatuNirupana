@@ -1,5 +1,5 @@
 """
-Phase 2 driver: run src/asr/run_month.py for every month under data/raw,
+Driver: run src/asr/run_month.py for every month under data/raw,
 one subprocess per month (bounded memory), skipping months already done.
 Writes outputs/asr/run_all_log.txt.
 """

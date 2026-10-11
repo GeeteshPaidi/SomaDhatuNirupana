@@ -1,5 +1,5 @@
 """
-Time-resolved solar spectrum for the ASR rework (TRACKER Q3 decision: GOES).
+Time-resolved solar spectrum from GOES XRS.
 
 1. GOES XRS 1-min science data (NOAA NCEI, GOES-16 for 2020-2022, GOES-18
    for 2024-2026) -> isothermal temperature T and emission measure EM per

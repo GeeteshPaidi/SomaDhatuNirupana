@@ -1,6 +1,5 @@
 """
-Poisson (Cash) fit of raw CLASS counts with the simplified FP model
-(ASR rework, PLAN.md section 4; TRACKER tasks 1.5, 1.6).
+Poisson (Cash) fit of raw CLASS counts with the simplified FP model
 
 Model counts in channel k (fit range E_lo..E_hi, default 1.15-7.5 keV):
 

@@ -1,5 +1,5 @@
 """
-Diagnostic plots of real-spectrum fits (TRACKER 1.8): re-fits selected
+Diagnostic plots of real-spectrum fits: re-fits selected
 spectra of one month and plots data, total model, background, line and
 scatter components, and deviance residuals.
 
