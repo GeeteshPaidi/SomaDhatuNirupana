@@ -1,0 +1,12 @@
+{
+ "Mg": {
+  "sites_pass": false,
+  "grs_pass": true,
+  "claimed": false
+ },
+ "Al": {
+  "sites_pass": true,
+  "grs_pass": true,
+  "claimed": true
+ }
+}

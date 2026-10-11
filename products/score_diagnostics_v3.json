@@ -1,0 +1,20 @@
+{
+ "grs_vs_sites_r": {
+  "Mg": -0.11070847150901561,
+  "Al": -0.34268454666060216
+ },
+ "class_split_half_r_Mg": 0.6157700957101213,
+ "class_reliability_Mg": 0.76220013892446,
+ "grs_reliability_Mg": 0.7286600827869079,
+ "class_grs_ceiling_r_Mg": 0.7452414483433472,
+ "n_pixels_split_Mg": 1790,
+ "class_split_half_r_Al": 0.948622306148887,
+ "class_reliability_Al": 0.9736338367425076,
+ "grs_reliability_Al": 0.7814682030083899,
+ "class_grs_ceiling_r_Al": 0.8722751198947104,
+ "n_pixels_split_Al": 1790,
+ "old_pipeline_vs_grs_r_Mg": 0.48081992115492816,
+ "old_pipeline_n_pixels_Mg": 1790,
+ "old_pipeline_vs_grs_r_Al": 0.19222637339217566,
+ "old_pipeline_n_pixels_Al": 1790
+}

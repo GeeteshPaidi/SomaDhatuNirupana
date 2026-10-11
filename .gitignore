@@ -63,3 +63,9 @@ paper_asr/*.bbl
 paper_asr/*.blg
 paper_asr/*.spl
 paper_asr/*.synctex.gz
+
+# Local TGRS submission artefacts (not part of the release)
+outputs/cover_letter.*
+paper/main_manuscript_source.zip
+.pytest_cache/
+docs/

@@ -15,7 +15,7 @@ The chain fits every Chandrayaan-2 CLASS Level-1 X-ray fluorescence spectrum on 
 
 The incident solar spectrum is an isothermal CHIANTI spectrum at the GOES XRS temperature of each exposure. The chain uses only public data.
 
-> **Branches.** `asr-rework` holds the current work described here. `master` holds the earlier version submitted to IEEE TGRS (TGRS-2026-07721, not accepted). The old pipeline remains in `src/fitting/`, `src/mapping/` and `src/superres.py` for reference only.
+> **Versions.** v2.0.0 (this version) is the current pipeline described here. v1.x was the earlier version submitted to IEEE TGRS (TGRS-2026-07721, not accepted). The old pipeline remains in `src/fitting/`, `src/mapping/`, `src/superres.py` and `paper/` for reference only.
 
 ## Repository layout
 
@@ -37,6 +37,8 @@ src/asr/                  Current pipeline
   make_numbers.py         Every number in the paper -> numbers.tex / headline_numbers.json
   paper_figures.py, diag_plots.py   Figures
   survey_headers.py, baseline_check.py   Phase-0 header survey and old-pipeline reproduction
+products/                 Released data products: quality-0 per-footprint ratios, 2-deg maps,
+                          validation tables, headline numbers (see products/README.md)
 tests/test_asr_model.py   Unit tests (pytest)
 PLAN.md, TRACKER.md       Rework plan, task tracker, decisions log (incl. pre-declared choices)
 RESPONSE_MAP.md           Each TGRS reviewer concern -> what changed and where
@@ -80,7 +82,7 @@ Everything runs on CPU (NumPy/SciPy, multiprocessing).
 
 ## Citation
 
-See [`CITATION.cff`](CITATION.cff). The Zenodo record will be updated for this version on acceptance.
+See [`CITATION.cff`](CITATION.cff). Archived on Zenodo: [10.5281/zenodo.21993207](https://doi.org/10.5281/zenodo.21993207) (concept DOI, resolves to the latest version).
 
 ## License
 

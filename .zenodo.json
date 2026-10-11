@@ -1,6 +1,7 @@
 {
-  "title": "Global Fundamental-Parameter Mapping of Lunar Elemental Abundances from Chandrayaan-2 CLASS XRF Data with Cross-Modal Super-Resolution",
-  "description": "Pipeline for fundamental-parameter forward modelling and TRF spectral fitting of Chandrayaan-2 CLASS XRF data, adaptive-Gaussian spatial abundance mapping, cross-modal guided super-resolution, and Apollo/Luna ground-truth validation. Accompanies a paper submitted to IEEE Transactions on Geoscience and Remote Sensing (TGRS).",
+  "title": "Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS with time-resolved solar excitation from GOES XRS",
+  "description": "Processing chain, data products and manuscript source for global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS X-ray fluorescence spectra. Every Level-1 spectrum is fitted on raw counts with a Poisson (Cash) likelihood using a fundamental-parameter forward model (Sherman primary fluorescence, scattered solar spectrum, CLASS filter transmission, erf-binned detector response, particle-background template). The incident solar spectrum is an isothermal CHIANTI spectrum at the GOES XRS temperature of each exposure. Includes Fisher uncertainties, goodness-of-fit and quality flags, 2-degree maps with quality layers, and validation against Apollo/Luna returned soils and Lunar Prospector GRS. Version 2.0.0 supersedes the v1 (IEEE TGRS submission) pipeline, which is kept in the repository for reference. Manuscript prepared for Advances in Space Research.",
+  "version": "2.0.0",
   "creators": [
     {
       "name": "Kanjilal, Smarak",
@@ -26,8 +27,9 @@
     "X-ray fluorescence",
     "Chandrayaan-2",
     "CLASS",
+    "GOES XRS",
     "elemental abundance mapping",
-    "super-resolution",
+    "Poisson likelihood",
     "remote sensing"
   ],
   "related_identifiers": [

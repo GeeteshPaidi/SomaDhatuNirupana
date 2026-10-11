@@ -1,0 +1,61 @@
+{
+ "stages": {
+  "raw_L1_files": 1515239,
+  "dayside_valid_geometry": 1053989,
+  "goes_T_reliable_B1": 1017226,
+  "fit_converged": 1037846,
+  "passes_QC_quality0_and_B1": 578530,
+  "mapping_set": 578530
+ },
+ "footprint_size": {
+  "side01_km_median": 37.22608444674853,
+  "side12_km_median": 25.331037913931162,
+  "side01_km_p5_p95": [
+   32.04520334304018,
+   42.68620092791512
+  ],
+  "side12_km_p5_p95": [
+   20.568524376388325,
+   30.950535943848283
+  ],
+  "km_per_deg_equator": 30.32335042414948
+ },
+ "coverage": {
+  "coverage_all_cells_pct": 100.0,
+  "coverage_all_area_pct": 100.0,
+  "coverage_used_cells_pct": 100.0,
+  "coverage_used_area_pct": 100.0,
+  "Mg_cells_with_ge5_footprints_area_pct": 99.7052420427328,
+  "Al_cells_with_ge5_footprints_area_pct": 99.7052420427328
+ },
+ "mapping_set_ratio_percentiles": {
+  "Mg": [
+   0.0685832029023725,
+   0.15601448421895814,
+   0.2242451429205608,
+   0.2981902453342488,
+   0.43185559612334595
+  ],
+  "Al": [
+   0.4850705907879639,
+   0.7265947164833958,
+   0.9186969596448704,
+   1.0848010301249733,
+   1.3793261871700593
+  ],
+  "Ca": [
+   4.535041572897557e-22,
+   1.0909136792281769e-08,
+   0.32420502682201935,
+   2.8077715381884314,
+   4.99999996415298
+  ]
+ },
+ "params": {
+  "res": 2.0,
+  "min_counts": 300,
+  "min_xrsb": 1e-07,
+  "tag": "_v3",
+  "months_dir": "outputs/asr/months_v3"
+ }
+}
