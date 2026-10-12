@@ -1,5 +1,5 @@
 """
-Poisson (Cash) fit of raw CLASS counts with the simplified FP model
+Poisson (Cash) fit of raw CLASS counts with the simplified FP model
 
 Model counts in channel k (fit range E_lo..E_hi, default 1.15-7.5 keV):
 
@@ -213,11 +213,12 @@ class SpectrumFitter:
             return out
         s1 = np.sin(np.radians(psi1))
         if T_mk is not None:
-            if not np.isfinite(T_mk):
+            # scalar T (MK), or a tuple understood by a multi-temperature table
+            if not np.all(np.isfinite(T_mk)):
                 out.update(quality=Q_NOSOLAR, success=False)
                 return out
             self.set_temperature(T_mk)
-            out["T_mk"] = float(T_mk)
+            out["T_mk"] = float(T_mk) if np.ndim(T_mk) == 0 else tuple(map(float, T_mk))
         bkg = self.background_counts(exposure, n_scd)
         if x0 is None:
             excess = max(d[:self.n_main].sum() - bkg[0][self.main].sum(), 1.0)
