@@ -9,6 +9,7 @@ A survey of \NHeaderSample{} headers sampled uniformly from all months (\cref{ta
 
 \begin{table}[t]
 \centering
+\small
 \caption{CLASS Level-1 header survey (\NHeaderSample{} files, 200 per month).}\label{tab:headers}
 \begin{tabular}{ll}
 \toprule
@@ -28,7 +29,7 @@ Keyword & Value / range \\
 \end{table}
 
 \subsection{GOES XRS solar soft X-ray data}\label{sec:goes}
-CLASS has no on-board solar monitor of its own. We characterise the incident solar spectrum using the GOES X-Ray Sensor (XRS) 1-minute science-quality averages from NOAA/NCEI (GOES-16 for 2020--2022; GOES-18 for 2024--2026). The Moon and the Earth see the same solar disk to within a fraction of a degree. For each minute we derive the isothermal temperature $T$ and emission measure from the ratio of the \SIrange{0.05}{0.4}{nm} and \SIrange{0.1}{0.8}{nm} channels \citep{White2005}, using the CHIANTI-based response tables with coronal abundances implemented in \texttt{sunkit-instruments} \citep{SunPy2020}. Each CLASS exposure is assigned the values of the nearest GOES minute to its mid-time (tolerance \SI{1}{min}).
+Within the CLASS archive itself there is no measurement of the incident solar spectrum. We characterise the incident solar spectrum using the GOES X-Ray Sensor (XRS) 1-minute science-quality averages from NOAA/NCEI (GOES-16 for 2020--2022; GOES-18 for 2024--2026). The Moon and the Earth see the same solar disk to within a fraction of a degree. For each minute we derive the isothermal temperature $T$ and emission measure from the ratio of the \SIrange{0.05}{0.4}{nm} and \SIrange{0.1}{0.8}{nm} channels \citep{White2005}, using the CHIANTI-based response tables with coronal abundances implemented in \texttt{sunkit-instruments} \citep{SunPy2020}. Each CLASS exposure is assigned the values of the nearest GOES minute to its mid-time (tolerance \SI{1}{min}).
 
 Below the B1 flux level ($F_{0.1-0.8\,\mathrm{nm}} < \SI{1e-7}{W\,m^{-2}}$), the GOES-16 ratio temperature is unreliable: it is either pinned at the lower edge of the response table (\SI{2.8}{MK}) or diverges (\cref{sec:discussion}). Exposures taken below B1 are therefore excluded from all maps. This threshold was fixed before any comparison with ground truth.
 

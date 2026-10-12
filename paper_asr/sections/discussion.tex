@@ -1,27 +1,57 @@
 \section{Discussion}\label{sec:discussion}
 
-\subsection{Why the solar spectrum matters for line ratios}
-Ratios to Si are often treated as insensitive to the incident spectrum. Our forward model shows that they are not. Each K line is excited by the part of the solar spectrum above its own edge (Mg \SI{1.31}{keV}, Si \SI{1.84}{keV}, Ca \SI{4.04}{keV}), and at coronal temperatures that part is dominated by a few He-like line complexes whose relative strengths change steeply with temperature.
+\subsection{Sensitivity of line ratios to the solar spectrum}
+Element/Si ratios are sometimes expected to be insensitive to the incident spectrum. Our forward model indicates that the sensitivity is appreciable. Each K line is excited by the part of the solar spectrum above its own edge (Mg \SI{1.31}{keV}, Si \SI{1.84}{keV}, Ca \SI{4.04}{keV}), and at coronal temperatures that part is dominated by a few He-like line complexes whose relative strengths change steeply with temperature.
 
-In our synthetic tests, a 30\% hotter spectrum than assumed biases Mg/Si by \SynHotMg\% and changes Ca/Si by an order of magnitude. Refitting real data with the GOES temperature scaled by 0.8 and 1.2 changes the median Mg/Si by \TsensMgLo\% and \TsensMgHi\%, and Al/Si by \TsensAlLo\% and \TsensAlHi\%.
+In our synthetic tests, a spectrum 30\% hotter than assumed biases Mg/Si by \SynHotMg\% and changes Ca/Si by an order of magnitude. Refitting real data with the GOES temperature scaled by 0.8 and 1.2 changes the median Mg/Si by \TsensMgLo\% and \TsensMgHi\%, and Al/Si by \TsensAlLo\% and \TsensAlHi\%.
 
-Before the solar lines were included, a continuum-only reference spectrum with any single temperature produced Mg/Si values of 0.3--0.8 together with Ca/Si of 0.004--0.5, never simultaneously lunar. The implausible ratios of earlier CLASS processing (Mg/Si $\approx1.4$, Ca/Si $\approx0.01$) have the same origin. A time-resolved description of the solar spectrum is therefore not an optional refinement but a requirement, even for ratio maps.
+With a continuum-only reference spectrum, we could not find a single temperature that gave lunar-like Mg/Si and Ca/Si at the same time (Mg/Si 0.3--0.8 with Ca/Si 0.004--0.5). The implausible ratios of our own earlier processing of these data (Mg/Si $\approx1.4$, Ca/Si $\approx0.01$) probably have the same origin. For this reason we consider a time-resolved description of the solar spectrum important even for ratio maps.
 
-\subsection{GOES as a proxy for the solar spectrum}
-GOES provides the solar state for every CLASS exposure from public data. Its limitations are well known. The two-channel temperature is a single isothermal value. It is weighted towards the hottest plasma. Below the B1 level it is unreliable, and we found it pinned to the edge of the response table or diverging there. The GOES-16 and GOES-18 temperatures agree to 0.5\% in their overlap.
+\subsection{GOES as a proxy for the solar spectrum}\label{sec:goes_proxy}
+GOES provides an estimate of the solar state for every CLASS exposure from public data, with known limitations. The two-channel temperature is a single isothermal value, weighted towards the hottest plasma, and below the B1 level it is unreliable; in our data it was pinned to the edge of the response table or diverged there. The GOES-16 and GOES-18 temperatures agree to 0.5\% in their overlap.
 
-The real corona is multi-thermal. The isothermal approximation underpredicts the flux above \SI{4}{keV} at the temperatures typical of our data. This is why Ca/Si is biased even in self-consistent synthetic tests, and why Ti and Fe cannot be constrained at all. The residual orbit-to-orbit striping in the maps is consistent with solar-state errors of this kind. XSM spectra measured simultaneously with CLASS \citep{Mithun2020} would remove this limitation, and our model accepts any tabulated $S(E)$, so the extension is direct.
+The real corona is multi-thermal, and the isothermal approximation underpredicts the flux above \SI{4}{keV} at the temperatures typical of our data. This is a likely reason why Ca/Si is biased even in self-consistent synthetic tests and why Ti and Fe are not constrained. The residual orbit-to-orbit striping in the maps is consistent with solar-state errors of this kind.
+
+\subsection{Comparison with XSM solar spectra}\label{sec:xsm}
+To test the GOES approximation directly, we used Level-2 spectra of the Chandrayaan-2 Solar X-ray Monitor \citep{Mithun2020} for three months chosen in advance (December 2024, June 2025 and December 2025). XSM views the Sun for part of each orbit, and its 1-minute spectra overlap \XsmNClass{} mapping-set CLASS exposures (\XsmNMin{} XSM minutes). The test and its acceptance criterion were fixed before it was run. We fitted each XSM minute in \SIrange{1.5}{10}{keV} with the same CHIANTI table, using the response matrix of the XSM calibration database, first with a single temperature and then with two temperatures. We then refitted the overlapping CLASS spectra with the XSM-derived spectrum in place of the GOES one, keeping everything else unchanged. Refitting with the GOES temperature reproduces the mapped values exactly.
+
+The XSM isothermal temperatures are higher than the GOES values by a median factor of \XsmTRatio{} (16th--84th percentile \XsmTRatioLo--\XsmTRatioHi). With the XSM isothermal spectrum, the median Al/Si changes by \XsmOneAl\% (16th--84th percentile \XsmOneAlLo{} to \XsmOneAlHi\%) and the median Mg/Si by \XsmOneMg\% (\XsmOneMgLo{} to \XsmOneMgHi\%; \XsmOneN{} spectra, \cref{fig:xsm}). With the two-temperature XSM spectrum, the changes are \XsmTwoAl\% for Al/Si and \XsmTwoMg\% for Mg/Si (\XsmTwoN{} spectra). The per-month medians are listed in \cref{tab:xsm}.
+
+Two conclusions follow. First, Al/Si changes by at most a few per cent under either description of the measured solar spectrum, which supports its use as the more robust product. Second, Mg/Si depends noticeably on the assumed thermal structure of the corona: the isothermal and two-temperature descriptions of the same XSM spectra shift it in opposite directions. Both shifts lie within the $\pm20$\% temperature systematic stated in \cref{sec:limitations}, but they show that this systematic dominates the Mg/Si error budget. Neither description fits the XSM spectra perfectly (median reduced $\chi^2$ of \XsmChiOne{} and \XsmChiTwo{}), plausibly because of variable coronal abundances, so this comparison constrains, rather than removes, the solar-spectrum systematic. A full XSM-based treatment of all months, ideally with free abundances, is a natural extension, and our model accepts any tabulated $S(E)$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_xsm.pdf}
+\caption{Comparison of GOES- and XSM-based solar spectra for \XsmNClass{} CLASS exposures in December 2024, June 2025 and December 2025. Left: XSM isothermal temperature against GOES temperature (dashed: equality). Middle and right: change in Mg/Si and Al/Si when the CLASS spectra are refitted with the XSM isothermal (1T) or two-temperature (2T) spectrum instead of the GOES one.}\label{fig:xsm}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Median change (\%) in Mg/Si and Al/Si when CLASS spectra are refitted with XSM-derived solar spectra instead of the GOES isothermal spectrum.}\label{tab:xsm}
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{XSM isothermal} & \multicolumn{2}{c}{XSM two-temperature} \\
+Month & Mg/Si & Al/Si & Mg/Si & Al/Si \\
+\midrule
+December 2024 & \XsmOneMgMA & \XsmOneAlMA & \XsmTwoMgMA & \XsmTwoAlMA \\
+June 2025 & \XsmOneMgMB & \XsmOneAlMB & \XsmTwoMgMB & \XsmTwoAlMB \\
+December 2025 & \XsmOneMgMC & \XsmOneAlMC & \XsmTwoMgMC & \XsmTwoAlMC \\
+\midrule
+All & \XsmOneMg & \XsmOneAl & \XsmTwoMg & \XsmTwoAl \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{The instrumental aluminium component}
-The Al K$\alpha$ excess in sunlit nightside spectra has a sharp onset near \texttt{SOLARANG} $\approx93^\circ$ and disappears at the shadow boundary (\cref{fig:background}). It must therefore be excited by solar X-rays that reach aluminium in the instrument (filters, frames, housing; \citealp{Pillai2021}) when the Sun is behind the spacecraft. On the dayside the Sun is in front of the nadir-pointing instrument, and the component is absent.
+The Al K$\alpha$ excess in sunlit nightside spectra has a sharp onset near \texttt{SOLARANG} $\approx93^\circ$ and disappears at the shadow boundary (\cref{fig:background}). The most likely explanation is solar X-rays reaching aluminium in the instrument (filters, frames, housing; \citealp{Pillai2021}) when the Sun is behind the spacecraft. On the dayside the Sun is in front of the nadir-pointing instrument, and we expect the component to be negligible.
 
-Mishandling it is costly. Subtracting a month-averaged nightside spectrum, as earlier processing did, removes a time-variable amount of Al. Fitting its amplitude freely, as in our alternative model, lets it absorb lunar Al in some months; Al/Si reliability then drops from \RelAl{} to \RelAlvTwo{} and the GRS correlation from \GrsAlR{} to \GrsAlRvTwo. Other XRF instruments with aluminium structures or filters may show the same effect, and it can be identified with the same nightside test.
+Its treatment affects Al/Si appreciably. Subtracting a month-averaged nightside spectrum, as in our earlier processing, removes a time-variable amount of Al. Fitting its amplitude freely, as in our alternative model, allowed it to absorb part of the lunar Al signal in some months; Al/Si reliability then dropped from \RelAl{} to \RelAlvTwo{} and the GRS correlation from \GrsAlR{} to \GrsAlRvTwo. Other XRF instruments with aluminium structures or filters could show a similar effect, which the same nightside test would reveal.
 
 \subsection{Limitations}\label{sec:limitations}
 \begin{enumerate}
-\item \emph{No measured solar spectrum.} The solar spectrum is isothermal at the GOES temperature. In synthetic tests, temperature errors of $+30$\% and $-20$\% bias Mg/Si by \SynHotMg\% and \SynColdMg\%, and Al/Si by \SynHotAl\% and \SynColdAl\%. Scaling the GOES temperature of real data by 0.8 and 1.2 changes Mg/Si by \TsensMgLo\% and \TsensMgHi\% (\cref{sec:synthetic}). Ca/Si, Ti/Si and Fe/Si are not retrievable.
+\item \emph{Approximate solar spectrum.} The solar spectrum is isothermal at the GOES temperature. In synthetic tests, temperature errors of $+30$\% and $-20$\% bias Mg/Si by \SynHotMg\% and \SynColdMg\%, and Al/Si by \SynHotAl\% and \SynColdAl\%. Scaling the GOES temperature of real data by 0.8 and 1.2 changes Mg/Si by \TsensMgLo\% and \TsensMgHi\%, and Al/Si by \TsensAlLo\% and \TsensAlHi\% (\cref{sec:synthetic}). The XSM comparison for three months (\cref{sec:xsm}) gives changes within these ranges. Ca/Si, Ti/Si and Fe/Si are not retrieved with this approach.
 \item \emph{Relative, not absolute.} The products are weight ratios to Si. No absolute calibration is attempted, and the amplitude $A$ absorbs the solar flux, area and geometry.
-\item \emph{Detector efficiency.} The published filter transmission is applied. The SCD quantum efficiency and any surface dead layer are not modelled, because no curve is published. This mainly affects the Si line relative to Mg and Al, and probably explains why the median Al/Si (\MedAl) is higher than most returned soils. Such an offset rescales the maps but leaves their pattern and correlations unchanged.
+\item \emph{Detector efficiency.} The published filter transmission is applied. The SCD quantum efficiency and any surface dead layer are not modelled, because we found no published curve. This mainly affects the Si line relative to Mg and Al, and may explain why the median Al/Si (\MedAl) is higher than most returned soils. Such an offset would rescale the maps but leave their pattern and correlations unchanged.
 \item \emph{Physical effects not modelled.} Particle-size and roughness effects, phase-angle dependence beyond the plane-parallel geometry, and the angular dependence of scattering are not modelled.
 \item \emph{Spatial resolution.} Footprints are $25\times37$\,km. The maps are 2\textdegree{} and should not be interpreted at finer scales.
 \item \emph{Small validation sample.} Nine landing sites, sampled at the scale of a footprint, give a test with little statistical power. The GRS comparison is limited by the GRS resolution and by its own model dependence for Mg and Al.

@@ -23,3 +23,5 @@ paper_asr/*.synctex.gz
 # OS
 .DS_Store
 Thumbs.db
+
+data/xsm/

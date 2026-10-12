@@ -159,8 +159,33 @@ def fig_fits():
                     "--out", os.path.join(FIG, "fig_fits.pdf")], check=True)
 
 
+def fig_xsm(months=("2024_12", "2025_06", "2025_12")):
+    X = os.path.join(ROOT, "outputs", "asr", "xsm")
+    j = pd.concat([pd.read_parquet(os.path.join(X, f"class_refits_{m}.parquet")) for m in months])
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.4))
+    ax = axes[0]
+    ax.scatter(j.goes_T_mk, j.T1_xsm, s=2, alpha=0.3, color="k", rasterized=True)
+    lim = [2, max(j.goes_T_mk.max(), j.T1_xsm.max()) * 1.05]
+    ax.plot(lim, lim, "r--", lw=0.8)
+    ax.set_xlim(lim), ax.set_ylim(lim)
+    ax.set_xlabel("GOES T (MK)"), ax.set_ylabel("XSM isothermal T (MK)")
+    for ax, e in zip(axes[1:], ["Mg", "Al"]):
+        bins = np.linspace(-60, 60, 61)
+        for n, c, lab in [("xsm1t", "C0", "XSM 1T"), ("xsm2t", "C3", "XSM 2T")]:
+            ok = (j.quality_goes == 0) & (j[f"quality_{n}"] == 0)
+            ax.hist(100 * (j.loc[ok, f"r_{e}_{n}"] / j.loc[ok, f"r_{e}_goes"] - 1), bins=bins,
+                    histtype="step", color=c, label=lab)
+        ax.axvline(0, color="k", lw=0.6)
+        ax.set_xlabel(f"{e}/Si change vs GOES (%)")
+        ax.legend(fontsize=6)
+    axes[1].set_ylabel("spectra")
+    fig.tight_layout()
+    save(fig, "fig_xsm")
+
+
 if __name__ == "__main__" and len(sys.argv) > 1 and sys.argv[1] == "results":
     fig_maps()
     fig_validation()
     fig_fits()
+    fig_xsm()
     print("result figures ->", FIG)

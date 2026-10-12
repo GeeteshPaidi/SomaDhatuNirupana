@@ -312,9 +312,52 @@ def diag_numbers():
         put(f"GzSite{e}R{'One' if rad == 1 else 'Five'}", r.pearson_r, ".2f")
 
 
+XSM_MONTHS = ["2024_12", "2025_06", "2025_12"]
+
+
+def xsm_numbers():
+    X = os.path.join(A, "xsm")
+    frames, nmin = [], 0
+    for m in XSM_MONTHS:
+        f = os.path.join(X, f"class_refits_{m}.parquet")
+        if os.path.exists(f):
+            d = pd.read_parquet(f)
+            d["month"] = m
+            frames.append(d)
+            nmin += json.load(open(os.path.join(X, f"summary_{m}.json")))["n_xsm_minutes_used"]
+    j = pd.concat(frames)
+    xf = pd.concat([pd.read_parquet(os.path.join(X, f"xsm_fits_{m}.parquet")) for m in XSM_MONTHS
+                    if os.path.exists(os.path.join(X, f"xsm_fits_{m}.parquet"))])
+    put("XsmChiOne", np.median(xf.chi2_1t / xf.dof_1t), ".1f")
+    put("XsmChiTwo", np.median(xf.chi2_2t / xf.dof_2t), ".1f")
+    put("XsmNMonths", len(frames))
+    put("XsmNClass", comma(len(j)))
+    put("XsmNMin", comma(nmin))
+    q = j.T1_xsm / j.goes_T_mk
+    put("XsmTRatio", np.median(q), ".2f")
+    put("XsmTRatioLo", np.percentile(q, 16), ".2f")
+    put("XsmTRatioHi", np.percentile(q, 84), ".2f")
+    put("XsmTmed", np.median(j.T1_xsm), ".1f")
+    put("XsmTgoesMed", np.median(j.goes_T_mk), ".1f")
+    for n, nm in [("xsm1t", "One"), ("xsm2t", "Two")]:
+        ok = (j.quality_goes == 0) & (j[f"quality_{n}"] == 0)
+        put(f"Xsm{nm}N", comma(ok.sum()))
+        for e in ["Mg", "Al"]:
+            r = 100 * (j.loc[ok, f"r_{e}_{n}"] / j.loc[ok, f"r_{e}_goes"] - 1)
+            for p, s in [(16, "Lo"), (50, ""), (84, "Hi")]:
+                put(f"Xsm{nm}{e}{s}", np.percentile(r, p), "+.0f")
+                N[f"Xsm{nm}{e}{s}"] = N[f"Xsm{nm}{e}{s}"].replace("-", "$-$")
+            for m, s in zip(XSM_MONTHS, "ABC"):  # A = 2024-12, B = 2025-06, C = 2025-12
+                k = ok & (j.month == m)
+                v = np.median(j.loc[k, f"r_{e}_{n}"] / j.loc[k, f"r_{e}_goes"]) * 100 - 100
+                key = f"Xsm{nm}{e}M{s}"
+                put(key, v, "+.0f")
+                N[key] = N[key].replace("-", "$-$")
+
+
 def main():
     for fn in [header_numbers, stage_numbers, calib_numbers, background_numbers, solar_numbers,
-               synthetic_numbers, validation_numbers, tsens_numbers, diag_numbers]:
+               synthetic_numbers, validation_numbers, tsens_numbers, diag_numbers, xsm_numbers]:
         try:
             fn()
         except Exception as ex:  # noqa: BLE001

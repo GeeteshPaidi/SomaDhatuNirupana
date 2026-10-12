@@ -4,7 +4,7 @@ The following choices were fixed and logged before the validation of the primary
 \begin{itemize}
 \item the matching radii (1, 2 and 5\textdegree, with 2\textdegree{} primary);
 \item the statistics: Pearson and Spearman coefficients with bootstrap 95\% confidence intervals, leave-one-site-out ranges, and a 20\textdegree{} spatial block bootstrap for GRS;
-\item the criterion for claiming an element as validated: Pearson $r>0$ with a 95\% confidence interval excluding zero in both the landing-site and GRS tests.
+\item the criterion for regarding an element as supported by both comparisons: Pearson $r>0$ with a 95\% confidence interval excluding zero in both the landing-site and GRS tests.
 \end{itemize}
 The history of the primary model, including an earlier model whose validation motivated it, is given in \cref{sec:alt}.
 
@@ -15,7 +15,7 @@ The history of the primary model, including an earlier model whose validation mo
 \item \emph{Al/Si, other radii:} $r=\SiteAlOneR$ (CI \SiteAlOneCI) at 1\textdegree{} and $r=\SiteAlFiveR$ at 5\textdegree.
 \item \emph{Mg/Si, 2\textdegree:} $r=\SiteMgTwoR$ (\SiteMgTwoCI); $r=\SiteMgOneR$ at 1\textdegree{} and $\SiteMgFiveR$ at 5\textdegree.
 \end{itemize}
-The CLASS site means have small statistical errors (\cref{tab:sites}). Their scatter about the soil values is therefore systematic. Footprints of $25\times37$\,km average over terrain much larger than the sampled landing sites, and several sites lie on mare--highland contacts (Apollo 15, 16, 17; Luna 20). Al/Si passes the site criterion; Mg/Si does not.
+The CLASS site means have small statistical errors (\cref{tab:sites}). Their scatter about the soil values is therefore mostly systematic. Footprints of $25\times37$\,km average over terrain much larger than the sampled landing sites, and several sites lie on mare--highland contacts (Apollo 15, 16, 17; Luna 20). Al/Si meets the site criterion; Mg/Si does not.
 
 \begin{table}[t]
 \centering
@@ -29,7 +29,7 @@ All \GrsMgN{} 5\textdegree{} equal-area GRS pixels contain at least 20 CLASS foo
 \item \emph{Al/Si:} $r=\GrsAlR$ (block-bootstrap 95\% CI \GrsAlCI; Spearman $\rho=\GrsAlRho$);
 \item \emph{Mg/Si:} $r=\GrsMgR$ (\GrsMgCI; $\rho=\GrsMgRho$).
 \end{itemize}
-Both pass the GRS criterion (\cref{fig:validation}). The correlations are stable under the count-threshold test: Al/Si $r=\GrsAlR$, \GrsAlRMinK{} and \GrsAlRMinKKK, and Mg/Si $r=\GrsMgR$, \GrsMgRMinK{} and \GrsMgRMinKKK, for thresholds of 300, 1000 and 3000 counts (\NMapped, \NMappedMinK{} and \NMappedMinKKK{} spectra). Restricting to GOES $\geq$ B3 leaves them unchanged.
+Both meet the GRS criterion (\cref{fig:validation}). The correlations are stable under the count-threshold test: Al/Si $r=\GrsAlR$, \GrsAlRMinK{} and \GrsAlRMinKKK, and Mg/Si $r=\GrsMgR$, \GrsMgRMinK{} and \GrsMgRMinKKK, for thresholds of 300, 1000 and 3000 counts (\NMapped, \NMappedMinK{} and \NMappedMinKKK{} spectra). Restricting to GOES $\geq$ B3 leaves them unchanged.
 
 \begin{figure}[t]
 \centering
@@ -37,10 +37,10 @@ Both pass the GRS criterion (\cref{fig:validation}). The correlations are stable
 \caption{Top: CLASS ratios within 2\textdegree{} of the landing sites against returned-soil ratios. Bottom: CLASS against Lunar Prospector GRS ratios on 5\textdegree{} equal-area pixels.}\label{fig:validation}
 \end{figure}
 
-\subsection{How close are these to the attainable limit?}\label{sec:limits_scores}
-\emph{Agreement with GRS is bounded by noise in both data sets.} We split the mapping set into two halves by alternate months, map each half separately, and correlate the two maps. After Spearman--Brown correction, the CLASS pixel means have reliabilities of \RelAl{} (Al/Si) and \RelMg{} (Mg/Si). The GRS error matrices imply reliabilities of \RelGrsAl{} and \RelGrsMg. The maximum attainable correlations are therefore $\sqrt{\rho_\mathrm{CLASS}\rho_\mathrm{GRS}}=\CeilAl$ for Al/Si and \CeilMg{} for Mg/Si. The observed values reach about 80\% of these ceilings. The GRS Mg and Al abundances are themselves model-dependent \citep{Prettyman2006}.
+\subsection{Interpretation of the correlation values}\label{sec:limits_scores}
+\emph{Agreement with GRS is bounded by noise in both data sets.} We split the mapping set into two halves by alternate months, map each half separately, and correlate the two maps. After Spearman--Brown correction, the CLASS pixel means have reliabilities of \RelAl{} (Al/Si) and \RelMg{} (Mg/Si). The GRS error matrices imply reliabilities of \RelGrsAl{} and \RelGrsMg. The maximum attainable correlations are therefore $\sqrt{\rho_\mathrm{CLASS}\rho_\mathrm{GRS}}=\CeilAl$ for Al/Si and \CeilMg{} for Mg/Si. The observed values are about 80\% of these ceilings. The GRS Mg and Al abundances are themselves model-dependent \citep{Prettyman2006}.
 
-\emph{The landing-site test has little discriminating power at this scale.} Applied to the same nine soil averages, using the 5\textdegree{} pixel containing each site, GRS itself gives $r=\GrsSitesAl$ for Al/Si and \GrsSitesMg{} for Mg/Si. Soil averages sample metres to kilometres around each landing point, whereas orbital pixels average tens to hundreds of kilometres \citep{Basu1998}. The failure of Mg/Si in this test therefore says little about the map, while the success of Al/Si is notable.
+\emph{The landing-site test has little discriminating power at this scale.} Applied to the same nine soil averages, using the 5\textdegree{} pixel containing each site, GRS itself gives $r=\GrsSitesAl$ for Al/Si and \GrsSitesMg{} for Mg/Si. Soil averages sample metres to kilometres around each landing point, whereas orbital pixels average tens to hundreds of kilometres \citep{Basu1998}. With nine sites and this mismatch in scale, the site test has limited power, and its outcome for Mg/Si should be interpreted with caution.
 
 \emph{Comparison with the earlier processing.} The earlier processing of the same data (centre-point binning of denoised least-squares fits without a solar model) gives $r=\OldGrsAl$ (Al/Si) and \OldGrsMg{} (Mg/Si) on the same GRS pixels.
 
@@ -65,7 +65,7 @@ Because the nightside geometry (\cref{fig:background}) independently indicates t
 
 During development we also corrected one defect after a first validation. The boundary threshold used to flag pinned ratios was raised from $10^{-6}$ to $10^{-3}$, because 254 fits pinned near zero had collapsed Fisher uncertainties and dominated the inverse-variance weights. Before that fix, the alternative model gave GRS Al/Si $r=\GrsAlRvOne$.
 
-The primary model was thus motivated by the diagnosis of the alternative model's validation, and readers should weigh it accordingly. Its specification was nonetheless fixed in advance, and it rests on a physical argument that does not involve the reference data.
+The primary model was thus motivated by the diagnosis of the alternative model's validation, and we note this so that readers can weigh it accordingly. Its specification was fixed before it was run, and it rests on a physical argument that does not involve the reference data.
 
 \subsection{Outcome}
-Under the pre-registered rule, Al/Si is claimed as validated: it passes both the GRS test ($r=\GrsAlR$) and the landing-site test ($r=\SiteAlTwoR$). Mg/Si passes the GRS test ($r=\GrsMgR$) but not the nine-site test, which GRS itself does not pass. We therefore present Al/Si as a validated relative map. We present Mg/Si as a relative map whose large-scale pattern agrees with GRS, without a claim of site-level accuracy.
+Under the pre-declared rule, Al/Si meets both criteria: GRS ($r=\GrsAlR$) and the landing sites ($r=\SiteAlTwoR$). Mg/Si meets the GRS criterion ($r=\GrsMgR$) but not the nine-site criterion, which GRS itself also does not meet. We therefore present Al/Si as a relative map that is supported by both comparisons, and Mg/Si as a relative map whose large-scale pattern agrees with GRS, without a claim of site-level accuracy.

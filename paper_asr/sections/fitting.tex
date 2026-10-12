@@ -9,7 +9,7 @@ m_k = A\Big[\sum_\ell \frac{P_\ell}{P_\mathrm{ref}} R_{\ell k} + B\,\frac{(\math
 \end{equation}
 where $t$ is the exposure, $n_\mathrm{SCD}$ is the number of SCDs summed, $\mathcal{F}$ is the detector folding of \cref{eq:response}, and $P_\mathrm{ref}$, $\Sigma_\mathrm{ref}$ are fixed reference normalisations. The parameter vector is $\theta=(A,r_\mathrm{Mg},r_\mathrm{Al},r_\mathrm{Ca},B,\beta)$. In the alternative model of \cref{sec:alt}, the term $\gamma\,b^{\mathrm{s}}_k\,t\,n_\mathrm{SCD}/16$ is added with $\gamma\ge0$ free. All components are non-negative, the ratios are bounded to $[0,5]$, and $\beta\le10$.
 
-Si is the reference element, so only ratios and one amplitude are fitted. This removes the scale degeneracy of fitting absolute concentrations together with a free global scale. Ti/Si and Fe/Si are held at global lunar-soil means (0.04 and 0.37) and enter only through the matrix. At GOES temperatures of 3--\SI{8}{MK} the solar flux above the Ti and Fe K edges is too small for an \SI{8}{s} spectrum to constrain them; leaving them free made 92\% of test fits ill-conditioned. We minimise the Cash statistic \citep{Cash1979}
+Si is the reference element, so only ratios and one amplitude are fitted. This avoids the scale degeneracy of fitting absolute concentrations together with a free global scale. Ti/Si and Fe/Si are held at global lunar-soil means (0.04 and 0.37) and enter only through the matrix. At GOES temperatures of 3--\SI{8}{MK} the solar flux above the Ti and Fe K edges is too small for an \SI{8}{s} spectrum to constrain them; leaving them free made 92\% of test fits ill-conditioned. We minimise the Cash statistic \citep{Cash1979}
 \begin{equation}
 C = 2\sum_k \big[m_k - d_k + d_k\ln(d_k/m_k)\big]
 \label{eq:cash}
