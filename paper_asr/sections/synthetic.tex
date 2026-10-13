@@ -8,8 +8,8 @@ Before applying the fitter to real data, we tested it on synthetic CLASS-like sp
 
 \paragraph{Temperature error} The main systematic is the solar temperature. We generate spectra at one temperature and fit them assuming another, to mimic error in the GOES temperature. With a true spectrum 30\% hotter than assumed, Mg/Si is biased by \SynHotMg\% and Al/Si by \SynHotAl\%. With a true spectrum 20\% cooler, the biases are \SynColdMg\% and \SynColdAl\%. Ca/Si changes by a factor of $\sim$9 or collapses to zero. These numbers set the systematic uncertainty quoted for the maps (\cref{sec:limitations}), and they are the reason we do not report Ca/Si, Ti/Si or Fe/Si with this approach.
 
-\begin{table}[t]
+\begin{table*}[!tp]
 \centering
 \caption{Synthetic recovery at a \SI{5}{MK} solar temperature (80 spectra per level): median relative bias / robust relative scatter (\%), and pull width.}\label{tab:synthetic}
 \input{tables/synthetic}
-\end{table}
+\end{table*}

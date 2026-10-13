@@ -6,12 +6,13 @@
 \begin{table}[t]
 \centering
 \caption{Exposure counts at each pipeline stage (all 24 months).}\label{tab:stages}
+\small
 \begin{tabular}{lr}
 \toprule
 Stage & Exposures \\
 \midrule
 Level-1 files & \NRawFiles \\
-Dayside (\texttt{SOLARANG} $<90^\circ$), valid geometry; all fitted & \NDayside \\
+Dayside, valid geometry (all fitted) & \NDayside \\
 \quad with reliable GOES temperature ($\geq$ B1) & \NGoesOK \\
 \quad fit converged & \NConverged \\
 Mapping set (quality $=0$, $\geq$300 counts, $\geq$ B1) & \NMapped \\
@@ -22,11 +23,11 @@ Mapping set (quality $=0$, $\geq$300 counts, $\geq$ B1) & \NMapped \\
 \subsection{Fit examples}\label{sec:examples}
 \Cref{fig:fits} shows fits to a bright, a median and a faint dayside spectrum. The model describes the Mg, Al and Si K lines, the Ca K line and the scattered solar continuum and lines. In the faint spectrum the particle background dominates above \SI{2}{keV}, and the uncertainties on Mg/Si and Al/Si become correspondingly large.  Bright flare spectra (e.g.\ the top panel, $T=16.8$\,MK) often fail the goodness-of-fit criterion. Residual structure below \SI{2}{keV} points to limitations of the isothermal solar spectrum and of the line-shape model, so the mapping set is weighted towards non-flaring and moderate-flare conditions.
 
-\begin{figure}[t]
+\begin{figure*}[!tp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_fits.pdf}
-\caption{Example fits (December 2024) to a bright, a median and a faint dayside spectrum: data (grey), total model (black), fluorescence lines (red), scattered solar spectrum (green), and particle background (blue), with deviance residuals.}\label{fig:fits}
-\end{figure}
+\caption{Example spectral fits. Fits (December 2024) to a bright, a median and a faint dayside spectrum: data (grey), total model (black), fluorescence lines (red), scattered solar spectrum (green), and particle background (blue), with deviance residuals.}\label{fig:fits}
+\end{figure*}
 
 \subsection{Global maps}\label{sec:maps}
 \Cref{fig:maps} shows the Mg/Si and Al/Si maps with their observation-count and standard-error layers. Over the mapping set, the median footprint ratios are Mg/Si $=\MedMg$ (5th--95th percentile \PfiveMg--\PninetyfiveMg) and Al/Si $=\MedAl$ (\PfiveAl--\PninetyfiveAl). The Mg/Si range lies within the range of returned lunar soils. The Al/Si median is higher than most returned soils, which may indicate a residual efficiency or calibration offset between the Al and Si lines (\cref{sec:limitations}). An offset of this kind would scale all values without changing the spatial pattern or the correlations, so we regard the maps as relative.
@@ -35,8 +36,8 @@ Quality-0 footprints reach every 2\textdegree{} cell (\CovUsedCells\% of cells, 
 
 The Mg/Si map shows the expected first-order dichotomy: higher values over the nearside maria and the South Pole--Aitken basin, lower values over the farside feldspathic highlands. The Al/Si map shows the complementary pattern at higher contrast. Several maria (Imbrium, Serenitatis, Crisium, Tranquillitatis, Fecunditatis, Nubium, Humorum) and the South Pole--Aitken basin appear as low-Al/Si units against the feldspathic highlands. Residual north--south striping follows individual orbits. We attribute it mainly to orbit-to-orbit differences in the solar state that the GOES isothermal temperature does not fully capture (\cref{sec:discussion}).
 
-\begin{figure}[t]
+\begin{figure*}[!tp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_maps.pdf}
-\caption{Mg/Si (left) and Al/Si (right) weight ratios on a 2\textdegree{} grid (inverse-variance-weighted means of quality-0 footprints; no smoothing or infill), with the number of footprints per cell (middle) and the standard error of the cell mean (bottom).}\label{fig:maps}
-\end{figure}
+\caption{Global Mg/Si and Al/Si maps with quality layers. Mg/Si (left) and Al/Si (right) weight ratios on a 2\textdegree{} grid (inverse-variance-weighted means of quality-0 footprints; no smoothing or infill), with the number of footprints per cell (middle) and the standard error of the cell mean (bottom).}\label{fig:maps}
+\end{figure*}

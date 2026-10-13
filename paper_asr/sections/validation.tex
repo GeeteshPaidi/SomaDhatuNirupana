@@ -17,11 +17,11 @@ The history of the primary model, including an earlier model whose validation mo
 \end{itemize}
 The CLASS site means have small statistical errors (\cref{tab:sites}). Their scatter about the soil values is therefore mostly systematic. Footprints of $25\times37$\,km average over terrain much larger than the sampled landing sites, and several sites lie on mare--highland contacts (Apollo 15, 16, 17; Luna 20). Al/Si meets the site criterion; Mg/Si does not.
 
-\begin{table}[t]
+\begin{table*}[!tp]
 \centering
 \caption{Landing-site validation at 2\textdegree{} radius: returned-soil weight ratios and CLASS weighted means $\pm$ standard error.}\label{tab:sites}
 \input{tables/sites}
-\end{table}
+\end{table*}
 
 \subsection{Lunar Prospector GRS}\label{sec:grs}
 All \GrsMgN{} 5\textdegree{} equal-area GRS pixels contain at least 20 CLASS footprints. On these pixels:
@@ -31,11 +31,11 @@ All \GrsMgN{} 5\textdegree{} equal-area GRS pixels contain at least 20 CLASS foo
 \end{itemize}
 Both meet the GRS criterion (\cref{fig:validation}). The correlations are stable under the count-threshold test: Al/Si $r=\GrsAlR$, \GrsAlRMinK{} and \GrsAlRMinKKK, and Mg/Si $r=\GrsMgR$, \GrsMgRMinK{} and \GrsMgRMinKKK, for thresholds of 300, 1000 and 3000 counts (\NMapped, \NMappedMinK{} and \NMappedMinKKK{} spectra). Restricting to GOES $\geq$ B3 leaves them unchanged.
 
-\begin{figure}[t]
+\begin{figure*}[!tp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_validation.pdf}
-\caption{Top: CLASS ratios within 2\textdegree{} of the landing sites against returned-soil ratios. Bottom: CLASS against Lunar Prospector GRS ratios on 5\textdegree{} equal-area pixels.}\label{fig:validation}
-\end{figure}
+\caption{Comparison with landing-site soils and Lunar Prospector GRS. Top: CLASS ratios within 2\textdegree{} of the landing sites against returned-soil ratios. Bottom: CLASS against Lunar Prospector GRS ratios on 5\textdegree{} equal-area pixels.}\label{fig:validation}
+\end{figure*}
 
 \subsection{Interpretation of the correlation values}\label{sec:limits_scores}
 \emph{Agreement with GRS is bounded by noise in both data sets.} We split the mapping set into two halves by alternate months, map each half separately, and correlate the two maps. After Spearman--Brown correction, the CLASS pixel means have reliabilities of \RelAl{} (Al/Si) and \RelMg{} (Mg/Si). The GRS error matrices imply reliabilities of \RelGrsAl{} and \RelGrsMg. The maximum attainable correlations are therefore $\sqrt{\rho_\mathrm{CLASS}\rho_\mathrm{GRS}}=\CeilAl$ for Al/Si and \CeilMg{} for Mg/Si. The observed values are about 80\% of these ceilings. The GRS Mg and Al abundances are themselves model-dependent \citep{Prettyman2006}.
@@ -46,11 +46,11 @@ Both meet the GRS criterion (\cref{fig:validation}). The correlations are stable
 
 \emph{Weighted median.} Replacing the weighted mean by a weighted median changes little: GRS $r=\MedGrsAl$ (Al/Si) and \MedGrsMg{} (Mg/Si). \Cref{fig:posthoc} shows the weighted-median maps.
 
-\begin{figure}[t]
+\begin{figure*}[!tp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_maps_wmedian_posthoc_v3.pdf}
-\caption{Alternative cell statistic (not the primary product): inverse-variance-weighted median of footprint ratios per 2\textdegree{} cell (footprint centres).}\label{fig:posthoc}
-\end{figure}
+\caption{Weighted-median maps. Alternative cell statistic (not the primary product): inverse-variance-weighted median of footprint ratios per 2\textdegree{} cell (footprint centres).}\label{fig:posthoc}
+\end{figure*}
 
 \subsection{Alternative model and the history of the primary model}\label{sec:alt}
 The analysis was first run with the instrumental amplitude $\gamma$ free (alternative model, \NMappedvTwo{} mapped spectra). Under the same pre-declared rules, that model gave the following.
@@ -61,7 +61,7 @@ The analysis was first run with the instrumental amplitude $\gamma$ free (altern
 \item \emph{Post-hoc check:} restricting that model to spectra with $\gamma<0.05$ (\GzPct\%) gave GRS Al/Si $r=\GzAlR$.
 \end{itemize}
 
-Because the nightside geometry (\cref{fig:background}) independently indicates that the component is absent on the dayside, we then specified the primary model ($\gamma\equiv0$ on the dayside). We logged it, together with the commitment to report its outcome whatever it was, \emph{before} running it on the full data set. All other choices are identical to the alternative model.
+Because the nightside geometry (\cref{fig:background}) suggests, independently of the reference data, that the component is negligible on the dayside, we then specified the primary model ($\gamma\equiv0$ on the dayside). We logged it, together with the commitment to report its outcome whatever it was, \emph{before} running it on the full data set. All other choices are identical to the alternative model.
 
 During development we also corrected one defect after a first validation. The boundary threshold used to flag pinned ratios was raised from $10^{-6}$ to $10^{-3}$, because 254 fits pinned near zero had collapsed Fisher uncertainties and dominated the inverse-variance weights. Before that fix, the alternative model gave GRS Al/Si $r=\GrsAlRvOne$.
 

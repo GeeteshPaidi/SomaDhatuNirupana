@@ -1,17 +1,24 @@
 %% Advances in Space Research submission (Elsevier elsarticle).
 %% All numbers in the text are macros defined in numbers.tex, which is
 %% generated from the pipeline outputs by src/asr/make_numbers.py.
-\documentclass[preprint,12pt,authoryear]{elsarticle}
+\documentclass[final,5p,times,twocolumn,authoryear]{elsarticle}
 
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{siunitx}
 \usepackage{hyperref}
-\usepackage{lineno}
+\usepackage[switch,columnwise]{lineno}
 \usepackage[capitalize]{cleveref}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 \linenumbers
+\modulolinenumbers[5]
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\renewcommand{\dblfloatpagefraction}{0.75}
+\setcounter{dbltopnumber}{3}
 
 \input{numbers}
 
@@ -34,9 +41,6 @@
 \input{sections/abstract}
 \end{abstract}
 
-\begin{highlights}
-\input{sections/highlights}
-\end{highlights}
 
 \begin{keyword}
 Moon \sep X-ray fluorescence \sep Chandrayaan-2 CLASS \sep solar X-ray spectrum \sep GOES XRS \sep lunar surface composition
@@ -57,9 +61,12 @@ Moon \sep X-ray fluorescence \sep Chandrayaan-2 CLASS \sep solar X-ray spectrum 
 
 \appendix
 \section{Per-month statistics and calibration}\label{app:months}
-\begin{table}[h]
+Table~\ref{tab:months} lists the per-month exposure counts, mapping-set size, fitted energy-scale parameters and the source of the particle template.
+
+\begin{table}[!h]
 \centering
-\scriptsize
+\tiny
+\setlength{\tabcolsep}{2pt}
 \caption{Per-month exposure counts, mapping-set size, fitted energy-scale parameters and particle-template source.}\label{tab:months}
 \input{tables/months}
 \end{table}
