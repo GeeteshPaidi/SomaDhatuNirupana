@@ -1,0 +1,44 @@
+{
+ "month": "2025_06",
+ "n_xsm_minutes_month": 3332,
+ "n_class_inside": 2014,
+ "n_xsm_minutes_used": 414,
+ "xsm_chi2dof_1t_median": 3.5975673188585655,
+ "xsm_chi2dof_2t_median": 2.7881350860678045,
+ "T_xsm1t_over_goes": [
+  1.0477,
+  1.1478,
+  1.1892
+ ],
+ "T_xsm1t_median_mk": 7.0792994423301066,
+ "T_goes_median_mk": 6.226194329398414,
+ "goes_refit_reproduces": {
+  "Mg": 0.0,
+  "Al": 0.0
+ },
+ "xsm1t_n_pairs": 1985,
+ "xsm1t_frac_quality0": 0.9856007944389275,
+ "xsm1t_Mg_ratio_p16_p50_p84": [
+  0.9999,
+  1.1504,
+  1.2646
+ ],
+ "xsm1t_Al_ratio_p16_p50_p84": [
+  1.0109,
+  1.0491,
+  1.0809
+ ],
+ "xsm2t_n_pairs": 1992,
+ "xsm2t_frac_quality0": 0.9890764647467726,
+ "xsm2t_Mg_ratio_p16_p50_p84": [
+  0.6686,
+  0.8538,
+  1.0072
+ ],
+ "xsm2t_Al_ratio_p16_p50_p84": [
+  0.9167,
+  0.9793,
+  1.0243
+ ],
+ "wall_s": 267.91602369991597
+}
