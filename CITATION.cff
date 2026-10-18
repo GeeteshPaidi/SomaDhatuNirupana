@@ -21,8 +21,8 @@ authors:
     affiliation: Independent Researcher
     email: subarnomaji@kgpian.iitkgp.ac.in
     orcid: "https://orcid.org/0009-0006-4698-6882"
-version: 2.0.1
-date-released: "2026-10-11"
+version: 2.0.2
+date-released: "2026-10-19"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21993207"
