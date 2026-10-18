@@ -62,6 +62,8 @@ def main():
         shutil.copy(os.path.join(HERE, "figures", f), os.path.join(SRC, "Figure_%d.pdf" % i))
     open(os.path.join(SRC, "manuscript.tex"), "w", encoding="utf-8").write(tex)
     shutil.copy(os.path.join(HERE, "references.bib"), os.path.join(SRC, "references.bib"))
+    # bibliography is already inlined in manuscript.tex; the .bbl is supplied as well for the typesetter
+    shutil.copy(os.path.join(HERE, "main.bbl"), os.path.join(SRC, "manuscript.bbl"))
     for f in ["elsarticle.cls", "elsarticle-harv.bst"]:
         p = kpse(f)
         if p:
