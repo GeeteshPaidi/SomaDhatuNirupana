@@ -6,6 +6,11 @@ repository-code: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
 url: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
 license: MIT
 authors:
+  - family-names: Paidi
+    given-names: Geetesh Chandra
+    affiliation: Independent Researcher
+    email: paidigeeteshchandra@gmail.com
+    orcid: "https://orcid.org/0009-0008-1153-3079"
   - family-names: Kanjilal
     given-names: Smarak
     affiliation: Independent Researcher
@@ -16,11 +21,6 @@ authors:
     affiliation: Independent Researcher
     email: subarnomaji@kgpian.iitkgp.ac.in
     orcid: "https://orcid.org/0009-0006-4698-6882"
-  - family-names: Paidi
-    given-names: Geetesh Chandra
-    affiliation: Independent Researcher
-    email: paidigeeteshchandra@gmail.com
-    orcid: "https://orcid.org/0009-0008-1153-3079"
 version: 2.0.1
 date-released: "2026-10-11"
 identifiers:

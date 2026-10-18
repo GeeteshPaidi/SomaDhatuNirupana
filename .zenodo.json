@@ -4,6 +4,11 @@
   "version": "2.0.1",
   "creators": [
     {
+      "name": "Paidi, Geetesh Chandra",
+      "affiliation": "Independent Researcher",
+      "orcid": "0009-0008-1153-3079"
+    },
+    {
       "name": "Kanjilal, Smarak",
       "affiliation": "Independent Researcher",
       "orcid": "0009-0005-4361-3119"
@@ -12,11 +17,6 @@
       "name": "Maji, Subarno",
       "affiliation": "Independent Researcher",
       "orcid": "0009-0006-4698-6882"
-    },
-    {
-      "name": "Paidi, Geetesh Chandra",
-      "affiliation": "Independent Researcher",
-      "orcid": "0009-0008-1153-3079"
     }
   ],
   "upload_type": "software",

@@ -3,7 +3,7 @@
 Processing chain, data products and manuscript source for:
 
 > *Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS with time-resolved solar excitation from GOES XRS*
-> Smarak Kanjilal, Subarno Maji, Paidi Geetesh Chandra.
+> Paidi Geetesh Chandra, Smarak Kanjilal, Subarno Maji.
 
 The chain fits every Chandrayaan-2 CLASS Level-1 X-ray fluorescence spectrum on its raw counts with a Poisson (Cash) likelihood. The forward model is a simplified fundamental-parameter model:
 
