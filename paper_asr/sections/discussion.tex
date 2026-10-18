@@ -1,6 +1,6 @@
 \section{Discussion}\label{sec:discussion}
 
-\subsection{Sensitivity of line ratios to the solar spectrum}
+\subsection{Sensitivity of line ratios to the solar spectrum}\label{sec:solar_sens}
 Element/Si ratios are sometimes expected to be insensitive to the incident spectrum. Our forward model indicates that the sensitivity is appreciable. Each K line is excited by the part of the solar spectrum above its own edge (Mg \SI{1.31}{keV}, Si \SI{1.84}{keV}, Ca \SI{4.04}{keV}), and at coronal temperatures that part is dominated by a few He-like line complexes whose relative strengths change steeply with temperature.
 
 In our synthetic tests, a spectrum 30\% hotter than assumed biases Mg/Si by \SynHotMg\% and changes Ca/Si by an order of magnitude. Refitting real data with the GOES temperature scaled by 0.8 and 1.2 changes the median Mg/Si by \TsensMgLo\% and \TsensMgHi\%, and Al/Si by \TsensAlLo\% and \TsensAlHi\%.
@@ -49,7 +49,7 @@ Its treatment affects Al/Si appreciably. Subtracting a month-averaged nightside 
 
 \subsection{Limitations}\label{sec:limitations}
 \begin{enumerate}
-\item \emph{Approximate solar spectrum.} The solar spectrum is isothermal at the GOES temperature. In synthetic tests, temperature errors of $+30$\% and $-20$\% bias Mg/Si by \SynHotMg\% and \SynColdMg\%, and Al/Si by \SynHotAl\% and \SynColdAl\%. Scaling the GOES temperature of real data by 0.8 and 1.2 changes Mg/Si by \TsensMgLo\% and \TsensMgHi\%, and Al/Si by \TsensAlLo\% and \TsensAlHi\% (\cref{sec:synthetic}). The XSM comparison for three months (\cref{sec:xsm}) gives changes within these ranges. Ca/Si, Ti/Si and Fe/Si are not retrieved with this approach.
+\item \emph{Approximate solar spectrum.} The solar spectrum is isothermal at the GOES temperature. In synthetic tests, temperature errors of $+30$\% and $-20$\% bias Mg/Si by \SynHotMg\% and \SynColdMg\%, and Al/Si by \SynHotAl\% and \SynColdAl\%. Scaling the GOES temperature of real data by 0.8 and 1.2 changes Mg/Si by \TsensMgLo\% and \TsensMgHi\%, and Al/Si by \TsensAlLo\% and \TsensAlHi\% (\cref{sec:solar_sens}). The XSM comparison for three months (\cref{sec:xsm}) gives changes within these ranges. Ca/Si, Ti/Si and Fe/Si are not retrieved with this approach.
 \item \emph{Relative, not absolute.} The products are weight ratios to Si. No absolute calibration is attempted, and the amplitude $A$ absorbs the solar flux, area and geometry.
 \item \emph{Detector efficiency.} The published filter transmission is applied. The SCD quantum efficiency and any surface dead layer are not modelled, because we found no published curve. This mainly affects the Si line relative to Mg and Al, and may explain why the median Al/Si (\MedAl) is higher than most returned soils. Such an offset would rescale the maps but leave their pattern and correlations unchanged.
 \item \emph{Physical effects not modelled.} Particle-size and roughness effects, phase-angle dependence beyond the plane-parallel geometry, and the angular dependence of scattering are not modelled.

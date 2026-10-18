@@ -38,14 +38,26 @@ def plot_fit(F, r, o, ax_top, ax_bot, title):
     E = F.E
     ax_top.step(E, d, where="mid", color="0.5", lw=0.7, label="data")
     ax_top.plot(E, m, "k", lw=1.2, label="model")
-    ax_top.plot(E, th[7] * bkg[0], "C0", lw=0.9, label="particle bkg")
-    ax_top.plot(E, th[8] * bkg[1], "C1", lw=0.9, label="instr. (solar)")
-    ax_top.plot(E, lines_only, "C3", lw=0.9, label="lines")
-    ax_top.plot(E, sc, "C2", lw=0.9, label="scatter")
+    # distinct line styles so the components stay readable in greyscale print
+    ax_top.plot(E, th[7] * bkg[0], "C0", ls="--", lw=0.9, label="particle bkg")
+    if th[8] > 0:
+        ax_top.plot(E, th[8] * bkg[1], "C1", ls="-.", lw=0.9, label="instr. (solar)")
+    ax_top.plot(E, lines_only, "C1", ls="-", lw=0.9, label="lines")
+    ax_top.plot(E, sc, "C4", ls=":", lw=1.2, label="scatter")
     ax_top.set_yscale("symlog", linthresh=1)
     ax_top.set_xlim(1.1, 7.6)
-    ax_top.set_title(title, fontsize=8)
-    ax_top.legend(fontsize=6, ncol=5)
+    if "\n" in title:
+        ax_top.set_title(title, fontsize=8)
+    else:  # paper style: short panel label + small in-panel annotation
+        ax_top.set_title(title, loc="left", fontsize=8, fontweight="bold")
+        ax_top.text(0.99, 0.95, f"{o['n_counts_fit']:.0f} counts, T = {o.get('T_mk', float('nan')):.1f} MK, "
+                    f"z = {o['gof_z']:.1f}\n"
+                    rf"Mg/Si = {o['r_Mg']:.2f} $\pm$ {o['sd_r_Mg']:.2f}, "
+                    rf"Al/Si = {o['r_Al']:.2f} $\pm$ {o['sd_r_Al']:.2f}",
+                    transform=ax_top.transAxes, fontsize=6.5, va="top", ha="right")
+    ax_top.set_ylabel("counts", fontsize=7)
+    if "\n" in title:
+        ax_top.legend(fontsize=6, ncol=4, loc="lower left")
     dev = np.sign(d - m) * np.sqrt(np.maximum(ft._cstat_terms(d, np.maximum(m, 1e-12)), 0))
     ax_bot.plot(E, dev, ".", ms=2, color="k")
     ax_bot.axhline(0, color="r", lw=0.5)
@@ -63,6 +75,7 @@ def main():
     ap.add_argument("--gamma_zero", action="store_true")
     ap.add_argument("--n_per", type=int, default=2)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--paper", action="store_true", help="short panel labels for the manuscript figure")
     args = ap.parse_args()
     tag = args.month.replace("/", "_")
     mdir = os.path.join(args.months_root or os.path.join(ROOT, "outputs", "asr", "months"), args.subdir or tag)
@@ -91,9 +104,16 @@ def main():
                    f"nSCD={r['n_scd']}  T={o.get('T_mk', float('nan')):.1f}MK  z={o['gof_z']:.1f}  q={o['quality']}\n" +
                    "  ".join(f"{e}/Si={o['r_'+e]:.3f}±{o['sd_r_'+e]:.3f}" for e in ["Mg", "Al", "Ca"]) +
                    f"  B={o['B']:.2f} beta={o['beta']:.2f} gamma={o['gamma']:.2f}")
+            if args.paper:
+                ttl = "(%s) %s" % ("abc"[i], {"high": "Bright", "median": "Median", "low": "Faint"}[lvl])
             plot_fit(F, r, o, axes[2 * i], axes[2 * i + 1], ttl)
             i += 1
-    fig.tight_layout()
+    if args.paper:  # one legend above all panels, clear of the data
+        h, lab = axes[0].get_legend_handles_labels()
+        fig.legend(h, lab, loc="upper center", ncol=len(lab), fontsize=8, frameon=False)
+        fig.tight_layout(rect=[0, 0, 1, 0.975])
+    else:
+        fig.tight_layout()
     out = args.out or os.path.join(mdir, "diag_fits.png")
     fig.savefig(out, dpi=80)
     print(out)

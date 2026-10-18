@@ -20,6 +20,9 @@
 \renewcommand{\dblfloatpagefraction}{0.75}
 \setcounter{dbltopnumber}{3}
 
+% DOIs as https://doi.org/... links (ASR guide reference examples)
+\newcommand{\DOIprefix}{}
+\AtBeginDocument{\providecommand{\doi}[1]{}\renewcommand{\doi}[1]{\href{https://doi.org/#1}{\path{https://doi.org/#1}}}}
 \input{numbers}
 
 \journal{Advances in Space Research}
@@ -60,6 +63,8 @@ Moon \sep X-ray fluorescence \sep Chandrayaan-2 CLASS \sep solar X-ray spectrum 
 \input{sections/conclusions}
 
 \appendix
+\setcounter{table}{0}
+\setcounter{figure}{0}
 \section{Per-month statistics and calibration}\label{app:months}
 Table~\ref{tab:months} lists the per-month exposure counts, mapping-set size, fitted energy-scale parameters and the source of the particle template.
 

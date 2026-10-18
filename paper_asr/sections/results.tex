@@ -1,11 +1,11 @@
 \section{Results}\label{sec:results}
 
 \subsection{Pipeline statistics}\label{sec:selection}
-\Cref{tab:stages} traces the exposures through the pipeline. All \NDayside{} dayside exposures with valid geometry were fitted; no flux-percentile pre-selection was applied. \NMapped{} spectra (\PctMapped\% of the dayside set) pass every quality criterion and form the mapping set. The fraction passing varies strongly with solar activity. It ranges from 2\% in February 2021, near solar minimum, where most spectra fall below the count threshold or below GOES B1, to 66\% in February 2025 (\cref{tab:months}). The GOES temperatures of the mapped exposures have a median of \MapTmed{}\,MK (5th--95th percentile \MapTlo--\MapThi{}\,MK).
+\Cref{tab:stages} traces the exposures through the pipeline. All \NDayside{} dayside exposures with valid geometry were fitted; no flux-percentile pre-selection was applied. \NMapped{} spectra (\PctMapped\% of the dayside set) pass every quality criterion and form the mapping set. The fraction passing varies strongly with solar activity. It ranges from \PassMinPct\% in \PassMinMonth{}, near solar minimum, where most spectra fall below the count threshold or below GOES B1, to \PassMaxPct\% in \PassMaxMonth{}, with a median of \PassMedPct\% over the \NMonths{} months (\cref{tab:months}). The GOES temperatures of the mapped exposures have a median of \MapTmed{}\,MK (5th--95th percentile \MapTlo--\MapThi{}\,MK).
 
 \begin{table}[t]
 \centering
-\caption{Exposure counts at each pipeline stage (all 24 months).}\label{tab:stages}
+\caption{Exposure counts (all 24 months). The indented rows are independent subsets of the dayside set, not sequential stages; the mapping set satisfies all criteria at once.}\label{tab:stages}
 \small
 \begin{tabular}{lr}
 \toprule
@@ -13,20 +13,20 @@ Stage & Exposures \\
 \midrule
 Level-1 files & \NRawFiles \\
 Dayside, valid geometry (all fitted) & \NDayside \\
-\quad with reliable GOES temperature ($\geq$ B1) & \NGoesOK \\
-\quad fit converged & \NConverged \\
-Mapping set (quality $=0$, $\geq$300 counts, $\geq$ B1) & \NMapped \\
+\quad of which: reliable GOES temperature ($\geq$ B1) & \NGoesOK \\
+\quad of which: fit converged & \NConverged \\
+Mapping set (all quality criteria, \cref{sec:uncert}) & \NMapped \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Fit examples}\label{sec:examples}
-\Cref{fig:fits} shows fits to a bright, a median and a faint dayside spectrum. The model describes the Mg, Al and Si K lines, the Ca K line and the scattered solar continuum and lines. In the faint spectrum the particle background dominates above \SI{2}{keV}, and the uncertainties on Mg/Si and Al/Si become correspondingly large.  Bright flare spectra (e.g.\ the top panel, $T=16.8$\,MK) often fail the goodness-of-fit criterion. Residual structure below \SI{2}{keV} points to limitations of the isothermal solar spectrum and of the line-shape model, so the mapping set is weighted towards non-flaring and moderate-flare conditions.
+\Cref{fig:fits} shows fits to a bright, a median and a faint dayside spectrum. The model describes the Mg, Al and Si K lines, the Ca K line and the scattered solar continuum and lines. In the faint spectrum the particle background dominates above \SI{2}{keV}, and the uncertainties on Mg/Si and Al/Si become correspondingly large.  Bright flare spectra (e.g.\ panel (a), $T=16.8$\,MK) often fail the goodness-of-fit criterion. Residual structure below \SI{2}{keV} points to limitations of the isothermal solar spectrum and of the line-shape model, so the mapping set is weighted towards non-flaring and moderate-flare conditions.
 
 \begin{figure*}[!tp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_fits.pdf}
-\caption{Example spectral fits. Fits (December 2024) to a bright, a median and a faint dayside spectrum: data (grey), total model (black), fluorescence lines (red), scattered solar spectrum (green), and particle background (blue), with deviance residuals.}\label{fig:fits}
+\caption{Example spectral fits. Fits to (a) a bright, (b) a median and (c) a faint dayside spectrum from December 2024: data (grey steps), total model (black), fluorescence lines (orange, solid), scattered solar spectrum (purple, dotted) and particle background (blue, dashed), each with deviance residuals below. The annotation in each panel gives the counts in the fitted window, the GOES temperature, the goodness-of-fit $z$ and the fitted Mg/Si and Al/Si with their $1\sigma$ uncertainties.}\label{fig:fits}
 \end{figure*}
 
 \subsection{Global maps}\label{sec:maps}

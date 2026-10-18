@@ -91,6 +91,15 @@ def stage_numbers():
                      "mapped": int(nmap.get(tag, 0)), "gain": 1000 * cj["gain"], "offset": 1000 * cj["offset"],
                      "fwhm": cj["fwhm_1.49keV_eV"], "bkg": "own" if cj.get("bkg_template_source", tag) == tag else "Dec 2024"})
     t = pd.DataFrame(rows)
+    # per-month quality-pass fraction (mapped / dayside)
+    t["frac"] = 100 * t.mapped / t.dayside
+    lo, hi = t.loc[t.frac.idxmin()], t.loc[t.frac.idxmax()]
+    mname = lambda m: pd.Timestamp(m + "-01").strftime("%B %Y")  # noqa: E731
+    put("PassMinPct", lo.frac, ".0f")
+    put("PassMinMonth", mname(lo.month))
+    put("PassMaxPct", hi.frac, ".0f")
+    put("PassMaxMonth", mname(hi.month))
+    put("PassMedPct", t.frac.median(), ".0f")
     os.makedirs(os.path.join(P, "tables"), exist_ok=True)
     with open(os.path.join(P, "tables", "months.tex"), "w") as f:
         f.write("\\begin{tabular}{lrrrrrrl}\n\\toprule\nMonth & Files & Dayside & Mapped & $g$ (eV/ch) & $o$ (eV) & FWHM$_{1.49}$ (eV) & Umbra template\\\\\n\\midrule\n")
@@ -104,6 +113,7 @@ def calib_numbers():
     cj = json.load(open(os.path.join(A, PM, "2024_12", "calib.json")))
     put("NStackDec", comma(cj["n_stack"]))
     put("GainDec", 1000 * cj["gain"], ".2f")
+    put("GainPctDec", 100 * (1000 * cj["gain"] / 13.5 - 1), ".1f")  # vs header GAIN = 13.5 eV/ch
     put("OffsetDec", 1000 * cj["offset"], ".1f")
     put("SigmaZeroDec", 1000 * cj["sigma0"], ".0f")
     put("FwhmAlDec", cj["fwhm_1.49keV_eV"], ".0f")

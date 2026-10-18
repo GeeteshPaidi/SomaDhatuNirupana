@@ -60,8 +60,8 @@ def fig_background(month="2024_12"):
     E = cal["gain"] * np.arange(len(P)) + cal["offset"]
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0))
     ax = axes[0]
-    ax.plot(E, P, lw=0.8, label="particle (umbra)")
-    ax.plot(E, np.clip(T, 1e-5, None), lw=0.8, label="solar-driven instrumental")
+    ax.plot(E, P, "C0", ls="-", lw=0.8, label="particle (umbra)")
+    ax.plot(E, np.clip(T, 1e-5, None), "C1", ls="--", lw=0.8, label="solar-driven instrumental")
     ax.set_yscale("log")
     ax.set_xlim(0.8, 10)
     ax.set_ylim(1e-3, 30)
@@ -75,8 +75,9 @@ def fig_background(month="2024_12"):
         d = pd.read_parquet(f)
         n = d[d.sa >= 90]
         ax = axes[1]
-        for lab, m, c in [("spacecraft sunlit", n.sc_sunlit, "C1"), ("spacecraft in umbra", ~n.sc_sunlit, "C0")]:
-            ax.scatter(n.sa[m], n.al[m].clip(lower=0.01), s=1, alpha=0.3, color=c, label=lab, rasterized=True)
+        for lab, m, c, mk, s in [("spacecraft sunlit", n.sc_sunlit, "C1", "o", 1), ("spacecraft in umbra", ~n.sc_sunlit, "k", "x", 3)]:
+            ax.scatter(n.sa[m], n.al[m].clip(lower=0.01), s=s, alpha=0.3, color=c, marker=mk, lw=0.4,
+                       label=lab, rasterized=True)
         ax.axvline(n.shadow_ang.median(), color="k", ls="--", lw=0.7)
         ax.set_yscale("log")
         ax.set_xlabel("SOLARANG (deg)")
@@ -156,7 +157,36 @@ def fig_fits():
     import subprocess
     subprocess.run([sys.executable, os.path.join(ROOT, "src", "asr", "diag_plots.py"), "--n_per", "1",
                     "--months_root", os.path.join(ROOT, "outputs", "asr", "months_v3"), "--gamma_zero",
-                    "--out", os.path.join(FIG, "fig_fits.pdf")], check=True)
+                    "--out", os.path.join(FIG, "fig_fits.pdf"), "--paper"], check=True)
+
+
+def fig_wmedian(tag="_v3"):
+    """Sensitivity map: inverse-variance-weighted median per 2-deg cell, assigning each
+    footprint to the cell of its centre (the primary maps share each footprint over
+    a 5x5 sample grid). Same colour scales as fig_maps."""
+    import alt_median_map as amm
+    ms = pd.read_parquet(os.path.join(ROOT, "outputs", "asr", "maps", f"mapping_set{tag}.parquet"))
+    ri = np.clip(((ms.clat.values + 90) / 2).astype(int), 0, 89)
+    ci = np.clip(((ms.clon.values + 180) / 2).astype(int), 0, 179)
+    cell = ri * 180 + ci
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.5))
+    for ax, (e, lo, hi) in zip(axes, [("Mg", 0.1, 0.4), ("Al", 0.2, 1.3)]):
+        w = 1 / np.maximum(ms[f"sd_r_{e}"].values, 1e-6) ** 2
+        v = amm.group_stat(cell, ms[f"r_{e}"].values, w, "median")
+        a = np.full(90 * 180, np.nan)
+        a[v.index.values.astype(int)] = v.values
+        im = ax.imshow(a.reshape(90, 180), origin="lower", extent=[-180, 180, -90, 90], cmap="viridis",
+                       vmin=lo, vmax=hi, aspect="auto")
+        cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
+        cb.set_label(f"{e}/Si (weighted median)", fontsize=7)
+        cb.ax.tick_params(labelsize=6)
+        ax.set_xticks([-180, -90, 0, 90, 180])
+        ax.set_yticks([-90, -45, 0, 45, 90])
+        ax.tick_params(labelsize=6)
+        ax.set_xlabel("Longitude (°E)", fontsize=7)
+    axes[0].set_ylabel("Latitude (°)", fontsize=7)
+    fig.tight_layout()
+    save(fig, f"fig_maps_wmedian_posthoc{tag}")
 
 
 def fig_xsm(months=("2024_12", "2025_06", "2025_12")):
@@ -171,10 +201,10 @@ def fig_xsm(months=("2024_12", "2025_06", "2025_12")):
     ax.set_xlabel("GOES T (MK)"), ax.set_ylabel("XSM isothermal T (MK)")
     for ax, e in zip(axes[1:], ["Mg", "Al"]):
         bins = np.linspace(-60, 60, 61)
-        for n, c, lab in [("xsm1t", "C0", "XSM 1T"), ("xsm2t", "C3", "XSM 2T")]:
+        for n, c, ls, lab in [("xsm1t", "C0", "-", "XSM 1T"), ("xsm2t", "C3", "--", "XSM 2T")]:
             ok = (j.quality_goes == 0) & (j[f"quality_{n}"] == 0)
             ax.hist(100 * (j.loc[ok, f"r_{e}_{n}"] / j.loc[ok, f"r_{e}_goes"] - 1), bins=bins,
-                    histtype="step", color=c, label=lab)
+                    histtype="step", color=c, ls=ls, lw=1.1, label=lab)
         ax.axvline(0, color="k", lw=0.6)
         ax.set_xlabel(f"{e}/Si change vs GOES (%)")
         ax.legend(fontsize=6)
