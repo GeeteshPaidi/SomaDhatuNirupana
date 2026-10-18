@@ -25,3 +25,5 @@ paper_asr/*.synctex.gz
 Thumbs.db
 
 data/xsm/
+
+*.log
