@@ -1,0 +1,33 @@
+{
+ "gain": 0.013378700929537465,
+ "offset": 0.02931114430137151,
+ "sigma0": 0.03764552084359,
+ "fwhm_1.49keV_eV": 106.52332006541307,
+ "fwhm_5.9keV_eV": 147.28232542217896,
+ "success": true,
+ "month": "2020_12",
+ "n_files": 3931,
+ "n_readable": 3931,
+ "n_valid_geom": 3931,
+ "n_dayside": 3051,
+ "n_night_shadow": 159,
+ "t_night_shadow_s": 1175.5340000000003,
+ "n_night_sunlit": 650,
+ "t_night_sunlit_s": 2387.203375,
+ "sunlit_over_shadow_hiband": 1.3466162791366105,
+ "bkg_template_source": "2020_12",
+ "inst_template_source": "2020_12",
+ "n_stack": 2054,
+ "kT": null,
+ "temp_cal": null,
+ "frac_with_goes": 1.0,
+ "n_fitted": 3051,
+ "fit_wall_s": 157.1733169000363,
+ "ms_per_fit_wall": 51.51534477221773,
+ "response": "arf",
+ "hi_band": [
+  8.0,
+  17.0
+ ],
+ "goes_tem": "goes_tem.parquet (1 min)"
+}

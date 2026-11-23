@@ -1,5 +1,5 @@
 """
-Simplified fundamental-parameter forward model for CLASS lunar XRF spectra
+Simplified fundamental-parameter forward model for CLASS lunar XRF spectra
 
 Physics (thick, flat, homogeneous target; photon counts per channel)
 ---------------------------------------------------------------------
@@ -41,6 +41,8 @@ fitted elements plus fixed minor oxides are converted to oxides and closed
 to 100 wt%, which fixes C_Si and stoichiometric O (O is not a free
 parameter).
 """
+import os
+
 import numpy as np
 import xraylib
 from scipy.special import erf
@@ -98,6 +100,28 @@ def class_filter_transmission(E, al_um=FILTER_AL_UM, pi_um=FILTER_POLYIMIDE_UM):
     mu_al = np.array([xraylib.CS_Total(13, x) for x in E])
     mu_pi = np.array([xraylib.CS_Total_CP("C22H10N2O5", x) for x in E])
     return np.exp(-(mu_al * RHO_AL * al_um * 1e-4 + mu_pi * RHO_POLYIMIDE * pi_um * 1e-4))
+
+
+# Distributed CLASS ancillary response (PRADAN calibration bundle, cla/calibration/
+# class_arf_v1.arf): effective area of the 16 SCDs including filters, collimator
+# blocking and absorption in the devices. Not redistributed; see README.
+CLASS_ARF = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
+                         "data", "calib", "class_arf_v1.arf")
+_ARF = None
+
+
+def class_arf_efficiency(E, path=CLASS_ARF):
+    """Relative CLASS efficiency at photon energies E (keV) from the distributed
+    ARF, normalised to its maximum. Only the energy dependence enters the fit;
+    the absolute area (and its scaling with the number of SCDs summed) is
+    absorbed by the fitted amplitude."""
+    global _ARF
+    if _ARF is None:
+        from astropy.io import fits
+        d = fits.getdata(path, "SPECRESP")
+        _ARF = (0.5 * (d["E_LOW"] + d["E_HIGH"]).astype(float), d["SPECRESP"].astype(float) / d["SPECRESP"].max())
+    E = np.atleast_1d(np.asarray(E, float))
+    return np.interp(E, *_ARF)
 
 
 def solar_spectrum(E, kT=1.07):

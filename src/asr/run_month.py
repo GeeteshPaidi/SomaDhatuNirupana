@@ -137,30 +137,101 @@ def calibrate(net, gain0=0.0135, offset0=0.0):
             "success": bool(res.success)}
 
 
+def temp_calibration(day16, bkg, min_per_bin=8000, max_bins=8):
+    """R1-5: detector calibration in detector-temperature (TEMP) quantile bins.
+
+    The resolution of the CLASS SCDs degrades strongly with temperature within
+    a month (2024-12: FWHM at 1.49 keV from 139 eV at -46 C to 279 eV at -26 C),
+    and TEMP follows the orbit, so a single monthly sigma0 maps a thermal
+    resolution error into latitude. Dayside 16-SCD spectra are split into up to
+    `max_bins` quantile bins of >= `min_per_bin` spectra, each stacked,
+    background-subtracted and calibrated; returns a list of bin calibrations
+    (sorted by median TEMP) or None if fewer than two usable bins."""
+    if len(day16) < 2 * min_per_bin:
+        return None
+    T = np.array([r["temp"] for r in day16])
+    if np.ptp(T) < 3.0:
+        return None
+    nb = int(np.clip(len(day16) // min_per_bin, 2, max_bins))
+    edges = np.quantile(T, np.linspace(0, 1, nb + 1))
+    out = []
+    for k in range(nb):
+        sel = (T >= edges[k]) & ((T < edges[k + 1]) if k < nb - 1 else (T <= edges[k + 1]))
+        rr = [r for r, s in zip(day16, sel) if s]
+        if not rr:
+            continue
+        net = np.sum([r["counts"] for r in rr], axis=0) - bkg * sum(r["exposure"] for r in rr)
+        c = calibrate(net)
+        if c["success"] and 0.0105 < c["sigma0"] < 0.1495:
+            c.update(t_lo=float(edges[k]), t_hi=float(edges[k + 1]), t_med=float(np.median(T[sel])), n=len(rr))
+            out.append(c)
+    return out if len(out) >= 2 else None
+
+
+def det_params_at(calib, temp):
+    """gain, offset, sigma0 for a detector temperature (interpolated between the
+    TEMP-bin calibrations, clamped at the ends); monthly values if no TEMP
+    calibration."""
+    tc = calib.get("temp_cal")
+    if not tc:
+        return calib["gain"], calib["offset"], calib["sigma0"]
+    tm = [b["t_med"] for b in tc]
+    return tuple(float(np.interp(temp, tm, [b[k] for b in tc])) for k in ("gain", "offset", "sigma0"))
+
+
 _F = None
+_FCACHE = {}
+_FARGS = None
+EFFICIENCY = {"filter": xm.class_filter_transmission, "arf": xm.class_arf_efficiency}
 
 
-def make_fitter(calib, bkg, inst, kT=None, gamma_zero=False):
+def make_fitter(calib, bkg, inst, kT=None, gamma_zero=False, response="filter", hi_band=(8.0, 20.0)):
     """kT=None -> CHIANTI table with per-spectrum GOES temperature;
     kT>0 -> legacy continuum-only spectrum at fixed kT (keV)."""
     det = xm.Detector(gain=calib["gain"], offset=calib["offset"], sigma0=calib["sigma0"])
+    return _make_fitter_det(det, bkg, inst, kT, gamma_zero, response, hi_band)
+
+
+def _make_fitter_det(det, bkg, inst, kT, gamma_zero, response, hi_band):
     if kT is None:
         fm = xm.ForwardModel(secondary=False, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=8.0,
-                             efficiency=xm.class_filter_transmission)
+                             efficiency=EFFICIENCY[response])
     else:
         fm = xm.ForwardModel(kT=kT, secondary=False, e_max=15, de=0.005)
     # gamma_zero (v3): instrumental component fixed to 0 on the dayside
-    return ft.SpectrumFitter(fm, det, bkg, inst_rate=None if gamma_zero else inst)
+    return ft.SpectrumFitter(fm, det, bkg, inst_rate=None if gamma_zero else inst, hi_band=tuple(hi_band))
 
 
-def _init(kT, calib, bkg, inst, gamma_zero=False):
-    global _F
-    _F = make_fitter(calib, bkg, inst, kT, gamma_zero)
+def _init(kT, calib, bkg, inst, gamma_zero=False, response="filter", hi_band=(8.0, 20.0)):
+    global _F, _FARGS, _FCACHE
+    _FARGS = (calib, bkg, inst, kT, gamma_zero, response, hi_band)
+    _FCACHE = {}
+    if not calib.get("temp_cal"):
+        _F = make_fitter(calib, bkg, inst, kT, gamma_zero, response, hi_band)
+
+
+def _fitter_for(temp):
+    """Fitter for a spectrum: monthly detector, or (TEMP calibration) one per
+    1 C step of detector temperature, built lazily and cached per worker."""
+    calib, bkg, inst, kT, gamma_zero, response, hi_band = _FARGS
+    if not calib.get("temp_cal"):
+        return _F, None
+    tc = calib["temp_cal"]
+    key = int(round(float(np.clip(temp, tc[0]["t_lo"], tc[-1]["t_hi"]))))
+    if key not in _FCACHE:
+        g, o, s = det_params_at(calib, key)
+        _FCACHE[key] = _make_fitter_det(xm.Detector(gain=g, offset=o, sigma0=s), bkg, inst, kT,
+                                        gamma_zero, response, hi_band)
+    return _FCACHE[key], key
 
 
 def _fit(r):
-    o = _F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"], T_mk=r.get("T_fit"))
+    F, key = _fitter_for(r["temp"])
+    o = F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"], T_mk=r.get("T_fit"))
     o.pop("corr", None)
+    if key is not None:
+        o["det_temp_key"] = key
+        o["det_gain"], o["det_offset"], o["det_sigma0"] = F.det.gain, F.det.offset, F.det.sigma0
     o["source_file"] = r["source_file"]
     return o
 
@@ -174,6 +245,14 @@ def main():
                     help="sensitivity: multiply the GOES temperature by this factor")
     ap.add_argument("--T_fixed", type=float, default=None, help="sensitivity: fixed CHIANTI T (MK)")
     ap.add_argument("--gamma_zero", action="store_true", help="v3: fix the instrumental amplitude to 0")
+    ap.add_argument("--response", choices=sorted(EFFICIENCY), default="filter",
+                    help="efficiency: published filter transmission (v3) or distributed CLASS ARF")
+    ap.add_argument("--goes_tem", default=None,
+                    help="R1-3: alternative GOES T/EM table (e.g. exposure-matched 1 s, goes_1s.py)")
+    ap.add_argument("--temp_cal", action="store_true",
+                    help="R1-5: detector gain/offset/sigma0 interpolated in detector TEMP (binned calibration)")
+    ap.add_argument("--hi_band", type=float, nargs=2, default=[8.0, 20.0],
+                    help="R1-8: particle-background proxy band (keV) added to the fit as one bin")
     ap.add_argument("--workers", type=int, default=12)
     ap.add_argument("--limit", type=int, default=None, help="max dayside spectra to fit (random subset)")
     ap.add_argument("--out_root", default=os.path.join(ROOT, "outputs", "asr", "months"))
@@ -197,7 +276,7 @@ def main():
     n_read = len(rows)
     print(f"{tag}: {len(paths)} files, {n_read} readable ({time.perf_counter()-t0:.0f}s)", flush=True)
 
-    bkg, inst, binfo = background_templates(rows)
+    bkg, inst, binfo = background_templates(rows, hi_band=tuple(args.hi_band))
     # Fallback: months without enough umbra / sunlit nightside exposures use the
     # 2024-12 template shapes (3,606 umbra, 16,232 sunlit exposures); beta and
     # gamma are fitted per spectrum, so only the shapes are borrowed.
@@ -222,20 +301,25 @@ def main():
     calib.update(month=tag, n_files=len(paths), n_readable=n_read, n_valid_geom=len(valid),
                  n_dayside=len(day), **binfo,
                  n_stack=len(stack_rows), kT=args.kT)
+    calib["temp_cal"] = temp_calibration(stack_rows, bkg) if args.temp_cal else None
     print(json.dumps(calib, indent=1), flush=True)
     np.savez(os.path.join(out_dir, "stack.npz"), stack=stack, t_stack=t_stack, bkg=bkg)
 
     if args.limit and len(day) > args.limit:
         rng = np.random.default_rng(0)
         day = [day[i] for i in sorted(rng.choice(len(day), args.limit, replace=False))]
-    T, EM, XB = solar.goes_at([r["mid_utc"] for r in day])
+    if args.goes_tem:
+        T, EM, XB = solar.goes_at([r["mid_utc"] for r in day], tem=pd.read_parquet(args.goes_tem),
+                                  window_min=1 / 60)
+    else:
+        T, EM, XB = solar.goes_at([r["mid_utc"] for r in day])
     for r, t, em, xb in zip(day, T, EM, XB):
         r["goes_T_mk"], r["goes_EM"], r["goes_xrsb"] = float(t), float(em), float(xb)
         if args.kT is None:
             r["T_fit"] = args.T_fixed if args.T_fixed is not None else t * args.T_scale
     calib["frac_with_goes"] = float(np.mean(np.isfinite(T))) if len(T) else 0.0
     t1 = time.perf_counter()
-    with Pool(args.workers, initializer=_init, initargs=(args.kT, calib, bkg, inst, args.gamma_zero)) as p:
+    with Pool(args.workers, initializer=_init, initargs=(args.kT, calib, bkg, inst, args.gamma_zero, args.response, args.hi_band)) as p:
         res = list(p.imap(_fit, day, chunksize=16))
     fit_s = time.perf_counter() - t1
     meta = pd.DataFrame([{k: v for k, v in r.items() if k not in ("counts", "T_fit")} for r in day])
@@ -243,6 +327,9 @@ def main():
     df["month"] = tag
     df.to_parquet(os.path.join(out_dir, "fits.parquet"), index=False)
     calib.update(n_fitted=len(df), fit_wall_s=fit_s, ms_per_fit_wall=fit_s / max(len(df), 1) * 1000)
+    calib["response"] = args.response
+    calib["hi_band"] = list(args.hi_band)
+    calib["goes_tem"] = args.goes_tem or "goes_tem.parquet (1 min)"
     with open(os.path.join(out_dir, "calib.json"), "w") as f:
         json.dump(calib, f, indent=1)
     print(f"fitted {len(df)} in {fit_s:.0f}s; quality==0: {(df['quality']==0).mean():.3f}", flush=True)

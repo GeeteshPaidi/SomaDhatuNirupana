@@ -1,0 +1,58 @@
+{
+ "gain": 0.01378104418396777,
+ "offset": -0.006740309987749033,
+ "sigma0": 0.04934384623626454,
+ "fwhm_1.49keV_eV": 130.3459249004145,
+ "fwhm_5.9keV_eV": 165.33277292222095,
+ "success": true,
+ "month": "2023_03",
+ "n_files": 41524,
+ "n_readable": 41524,
+ "n_valid_geom": 41524,
+ "n_dayside": 21219,
+ "n_night_shadow": 0,
+ "t_night_shadow_s": 0.0,
+ "n_night_sunlit": 20305,
+ "t_night_sunlit_s": 114701.83968749999,
+ "sunlit_over_shadow_hiband": 224360281143812.4,
+ "bkg_template_source": "2024_12",
+ "inst_template_source": "2023_03",
+ "n_stack": 19408,
+ "kT": null,
+ "temp_cal": [
+  {
+   "gain": 0.013675450531402265,
+   "offset": 0.006395306116810353,
+   "sigma0": 0.037055788540813865,
+   "fwhm_1.49keV_eV": 105.37046965838515,
+   "fwhm_5.9keV_eV": 146.45067954787663,
+   "success": true,
+   "t_lo": -51.6,
+   "t_hi": -42.6,
+   "t_med": -47.9,
+   "n": 9668
+  },
+  {
+   "gain": 0.013816850624432163,
+   "offset": -0.011408662448192703,
+   "sigma0": 0.05343962335045996,
+   "fwhm_1.49keV_eV": 139.0122984410482,
+   "fwhm_5.9keV_eV": 172.24774245797602,
+   "success": true,
+   "t_lo": -42.6,
+   "t_hi": -37.6,
+   "t_med": -40.3,
+   "n": 9740
+  }
+ ],
+ "frac_with_goes": 0.9978321315801876,
+ "n_fitted": 21219,
+ "fit_wall_s": 114.56978819996584,
+ "ms_per_fit_wall": 5.399396210941413,
+ "response": "arf",
+ "hi_band": [
+  8.0,
+  17.0
+ ],
+ "goes_tem": "goes_tem.parquet (1 min)"
+}

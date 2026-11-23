@@ -1,0 +1,58 @@
+{
+ "gain": 0.013278971116838107,
+ "offset": 0.0473251338440147,
+ "sigma0": 0.046404575624589245,
+ "fwhm_1.49keV_eV": 124.21555667849111,
+ "fwhm_5.9keV_eV": 160.54398208887687,
+ "success": true,
+ "month": "2021_09",
+ "n_files": 36959,
+ "n_readable": 36959,
+ "n_valid_geom": 36959,
+ "n_dayside": 19675,
+ "n_night_shadow": 354,
+ "t_night_shadow_s": 2740.5389999999998,
+ "n_night_sunlit": 15908,
+ "t_night_sunlit_s": 92717.30456250001,
+ "sunlit_over_shadow_hiband": 1.1374997786450949,
+ "bkg_template_source": "2021_09",
+ "inst_template_source": "2021_09",
+ "n_stack": 19668,
+ "kT": null,
+ "temp_cal": [
+  {
+   "gain": 0.013325535119261118,
+   "offset": 0.043874490200990664,
+   "sigma0": 0.04207699959497939,
+   "fwhm_1.49keV_eV": 115.3526447406268,
+   "fwhm_5.9keV_eV": 153.78913587332312,
+   "success": true,
+   "t_lo": -52.8,
+   "t_hi": -43.4,
+   "t_med": -45.8,
+   "n": 9694
+  },
+  {
+   "gain": 0.013207660749658278,
+   "offset": 0.05464633581545972,
+   "sigma0": 0.051212252285617946,
+   "fwhm_1.49keV_eV": 134.28279207690952,
+   "fwhm_5.9keV_eV": 168.45395190370778,
+   "success": true,
+   "t_lo": -43.4,
+   "t_hi": -35.6,
+   "t_med": -40.8,
+   "n": 9974
+  }
+ ],
+ "frac_with_goes": 0.9044472681067345,
+ "n_fitted": 19675,
+ "fit_wall_s": 290.51221590000205,
+ "ms_per_fit_wall": 14.765550998729456,
+ "response": "arf",
+ "hi_band": [
+  8.0,
+  17.0
+ ],
+ "goes_tem": "goes_tem.parquet (1 min)"
+}

@@ -27,3 +27,11 @@ Thumbs.db
 data/xsm/
 
 *.log
+
+# Revision working files
+paper_asr/*.fdb_latexmk
+paper_asr/*.fls
+revision/response_to_reviewers.md
+submission/
+data/calib
+data/xsm_l2

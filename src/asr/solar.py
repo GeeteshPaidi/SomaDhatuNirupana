@@ -30,9 +30,10 @@ E_EDGES = np.round(np.arange(1.01, 20.0 + 1e-9, 0.005), 6)
 T_GRID_MK = np.geomspace(2.0, 40.0, 61)
 
 # CLASS months -> GOES satellite/year files
-GOES_FILES = {2020: "g16", 2021: "g16", 2022: "g16", 2024: "g18", 2025: "g18", 2026: "g18"}
-# Gap-fill: GOES-16 (science data to 2025-04-06) used only for minutes with no good GOES-18 value.
-GOES_FILL = {2024: "g16", 2025: "g16"}
+GOES_FILES = {2020: "g16", 2021: "g16", 2022: "g16", 2023: "g16", 2024: "g18", 2025: "g18", 2026: "g18"}
+# Gap-fill: the other satellite, used only for minutes with no good primary value
+# (GOES-16 science data runs to 2025-04-06; GOES-18 operational from 2023-01-04).
+GOES_FILL = {2023: "g18", 2024: "g16", 2025: "g16"}
 
 
 def build_table():

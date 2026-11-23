@@ -1,11 +1,11 @@
 \section{Mapping}\label{sec:mapping}
 
-\paragraph{Gridding} Footprints are placed on a 2\textdegree{} latitude--longitude grid. Each footprint quadrilateral is sampled with a $5\times5$ bilinear grid of points between its four corners, and its weight is shared equally among the grid cells containing those points. The footprint corners recorded in the Level-1 headers span a median of \FootprintB{}\,km across track by \FootprintA{}\,km along track. This is the collimator field of view, about \SI{25}{km} at \SI{100}{km} altitude, plus roughly \SI{13}{km} of ground-track motion during the \SI{8}{s} integration. One degree is \SI{30.3}{km} at the lunar equator, so a footprint overlaps one to four 2\textdegree{} cells.
+\paragraph{Gridding} Footprints are placed on a 2\textdegree{} latitude--longitude grid. Each footprint quadrilateral is sampled with a $5\times5$ bilinear grid of points between its four corners. The footprint's inverse-variance weight is shared per sample point: each point carries 1/25 of it, so cell $c$ receives the fraction $f_{ic}$ of footprint $i$'s weight equal to the fraction of its points that fall in the cell. The footprint corners recorded in the Level-1 headers span a median of \FootprintB{}\,km across track by \FootprintA{}\,km along track. This is the collimator field of view, about \SI{25}{km} at \SI{100}{km} altitude, plus roughly \SI{13}{km} of ground-track motion during the \SI{8}{s} integration. One degree is \SI{30.3}{km} at the lunar equator, so a footprint overlaps one to four 2\textdegree{} cells.
 
-\paragraph{Cell values and quality layers} Each cell value is the inverse-variance-weighted mean of the footprint ratios. Three quality layers accompany each map:
+\paragraph{Cell values and quality layers} Each cell value is the weighted mean $\bar r_c=\sum_i f_{ic}w_i r_i/\sum_i f_{ic}w_i$, with $w_i=1/\sigma_i^2$ from the per-footprint uncertainty $\sigma_i$. Three quality layers accompany each map:
 \begin{itemize}
-\item the number of footprints contributing to the cell;
-\item the standard error of the weighted mean;
+\item the effective number of footprints contributing to the cell, $\sum_i f_{ic}$;
+\item the formal statistical standard error of the weighted mean, obtained by propagating the footprint uncertainties, $\sqrt{\sum_i f_{ic}^2w_i}\,/\sum_i f_{ic}w_i$; it treats footprints as independent and does not include systematic errors;
 \item the weighted scatter of the footprint ratios.
 \end{itemize}
 

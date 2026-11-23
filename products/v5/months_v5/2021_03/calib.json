@@ -1,0 +1,33 @@
+{
+ "gain": 0.014199999999999999,
+ "offset": 0.09999999999999999,
+ "sigma0": 0.01000347724185483,
+ "fwhm_1.49keV_eV": 63.59010838282831,
+ "fwhm_5.9keV_eV": 119.95235532554597,
+ "success": true,
+ "month": "2021_03",
+ "n_files": 234544,
+ "n_readable": 234544,
+ "n_valid_geom": 234544,
+ "n_dayside": 116470,
+ "n_night_shadow": 420,
+ "t_night_shadow_s": 3360.0,
+ "n_night_sunlit": 116934,
+ "t_night_sunlit_s": 650888.6821875,
+ "sunlit_over_shadow_hiband": 0.08314505574380313,
+ "bkg_template_source": "2021_03",
+ "inst_template_source": "2021_03",
+ "n_stack": 113001,
+ "kT": null,
+ "temp_cal": null,
+ "frac_with_goes": 0.9266592255516442,
+ "n_fitted": 116470,
+ "fit_wall_s": 807.9534273999743,
+ "ms_per_fit_wall": 6.937008907014461,
+ "response": "arf",
+ "hi_band": [
+  8.0,
+  17.0
+ ],
+ "goes_tem": "goes_tem.parquet (1 min)"
+}

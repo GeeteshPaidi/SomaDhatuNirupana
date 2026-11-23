@@ -31,7 +31,7 @@
 
 \begin{frontmatter}
 
-\title{Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS with time-resolved solar excitation from GOES XRS}
+\title{Global lunar Mg/Si and Al/Si weight-ratio maps from Chandrayaan-2 CLASS using GOES solar spectra}
 
 \author[a]{Paidi Geetesh Chandra\corref{cor1}}
 \ead{paidigeetesh@gmail.com}
@@ -70,31 +70,40 @@ Moon \sep X-ray fluorescence \sep Chandrayaan-2 CLASS \sep solar X-ray spectrum 
 \appendix
 \setcounter{table}{0}
 \setcounter{figure}{0}
+\renewcommand{\theHtable}{app.\arabic{table}}
+\renewcommand{\theHfigure}{app.\arabic{figure}}
 \section{Per-month statistics and calibration}\label{app:months}
-Table~\ref{tab:months} lists the per-month exposure counts, mapping-set size, fitted energy-scale parameters and the source of the particle template.
+Table~\ref{tab:months} lists the per-month exposure counts, mapping-set size, fitted energy-scale parameters and the source of the particle template. \Cref{fig:fwhmtemp} shows the dependence of the line width on detector temperature that motivates the temperature-binned calibration.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_fwhm_temp.pdf}
+\caption{Al K$\alpha$ FWHM against detector temperature (TEMP) from the temperature-binned calibration of each month (one point per temperature bin, at its median TEMP), coloured by year. Within a month the line width increases steeply with temperature (4--6\,eV per \textdegree C); at a fixed temperature of $-40$\,\textdegree C it increases from about 137\,eV in 2021 to 171\,eV in 2026, and the temperature slope steepens, as expected from radiation damage.}\label{fig:fwhmtemp}
+\end{figure}
 
 \begin{table}[!h]
 \centering
 \tiny
 \setlength{\tabcolsep}{2pt}
-\caption{Per-month exposure counts, mapping-set size, fitted energy-scale parameters and particle-template source.}\label{tab:months}
+\caption{Per-month exposure counts, mapping-set size, monthly gain $g$ and offset $o$, the detector-temperature (TEMP) range of the dayside spectra, the range of the Al K$\alpha$ FWHM over the temperature bins of the calibration (\cref{sec:calib}), and the particle-template source. A dash in the TEMP column, with a single FWHM value, marks a month with too few spectra for temperature bins, which uses one calibration for the whole month.}\label{tab:months}
 \input{tables/months}
+\end{table}
+
+\begin{table}[!h]
+\centering
+\scriptsize
+\caption{Dayside exposure counts and mapping-quality pass fractions for the \NArchEarly{} available monthly archives from December 2020 through December 2023 (pass: quality flag 0, GOES $\geq$ B1, $\geq$300 counts). The February 2022 -- December 2023 archives define epoch B in \cref{sec:epochs}.}\label{tab:early}
+\input{tables/early_months}
 \end{table}
 
 \section*{Data availability}
 \input{sections/data_availability}
 
-\section*{Declaration of competing interest}
-The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
-
-\section*{Funding}
-This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+\section*{Acknowledgements}
+We thank ISRO/ISSDC for public access to Chandrayaan-2 CLASS and XSM data through PRADAN, the XSM Payload Operations Centre (Physical Research Laboratory) for the XSM data products and calibration database, NOAA/NCEI for GOES XRS science-quality data, and the PDS Geosciences Node for the Lunar Prospector GRS products. This research used the open-source packages xraylib, SunPy, sunkit-instruments, sunkit-spex, NumPy, SciPy and Astropy. This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
 
 \section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
 During the preparation of this work the authors used Claude (Anthropic) in order to assist with code development, data analysis, and drafting and editing of the manuscript text. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
-
-\section*{Acknowledgements}
-We thank ISRO/ISSDC for public access to Chandrayaan-2 CLASS and XSM data through PRADAN, the XSM Payload Operations Centre (Physical Research Laboratory) for the XSM data products and calibration database, NOAA/NCEI for GOES XRS science-quality data, and the PDS Geosciences Node for the Lunar Prospector GRS products. This research used the open-source packages xraylib, SunPy, sunkit-instruments, sunkit-spex, NumPy, SciPy and Astropy.
 
 \bibliographystyle{elsarticle-harv}
 \bibliography{references}

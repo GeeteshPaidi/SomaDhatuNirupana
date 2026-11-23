@@ -1,0 +1,70 @@
+{
+ "gain": 0.013895704876560158,
+ "offset": -0.024391434246030515,
+ "sigma0": 0.03008718263838645,
+ "fwhm_1.49keV_eV": 92.2411560123921,
+ "fwhm_5.9keV_eV": 137.30730689409302,
+ "success": true,
+ "month": "2021_02",
+ "n_files": 40247,
+ "n_readable": 40247,
+ "n_valid_geom": 40247,
+ "n_dayside": 27555,
+ "n_night_shadow": 958,
+ "t_night_shadow_s": 7480.626999999997,
+ "n_night_sunlit": 10359,
+ "t_night_sunlit_s": 58778.787375,
+ "sunlit_over_shadow_hiband": 1.0251237827305608,
+ "bkg_template_source": "2021_02",
+ "inst_template_source": "2021_02",
+ "n_stack": 27394,
+ "kT": null,
+ "temp_cal": [
+  {
+   "gain": 0.014050837420758109,
+   "offset": -0.04152645742162684,
+   "sigma0": 0.022177063852530966,
+   "fwhm_1.49keV_eV": 78.84162990143469,
+   "fwhm_5.9keV_eV": 128.68903709920664,
+   "success": true,
+   "t_lo": -53.5,
+   "t_hi": -45.0,
+   "t_med": -46.2,
+   "n": 9064
+  },
+  {
+   "gain": 0.013720676324620904,
+   "offset": -0.0028253936693430613,
+   "sigma0": 0.0317583036539461,
+   "fwhm_1.49keV_eV": 95.29702176962768,
+   "fwhm_5.9keV_eV": 139.37857806050064,
+   "success": true,
+   "t_lo": -45.0,
+   "t_hi": -40.6,
+   "t_med": -43.2,
+   "n": 9164
+  },
+  {
+   "gain": 0.013585861529711661,
+   "offset": 0.01545448451502295,
+   "sigma0": 0.038754117165561486,
+   "fwhm_1.49keV_eV": 108.7054094991288,
+   "fwhm_5.9keV_eV": 148.86816892263928,
+   "success": true,
+   "t_lo": -40.6,
+   "t_hi": -34.0,
+   "t_med": -38.0,
+   "n": 9166
+  }
+ ],
+ "frac_with_goes": 0.9918345127925966,
+ "n_fitted": 27555,
+ "fit_wall_s": 251.6955275000073,
+ "ms_per_fit_wall": 9.13429604427535,
+ "response": "arf",
+ "hi_band": [
+  8.0,
+  17.0
+ ],
+ "goes_tem": "goes_tem.parquet (1 min)"
+}

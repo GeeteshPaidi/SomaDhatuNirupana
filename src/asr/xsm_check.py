@@ -13,7 +13,7 @@ month (pre-declared test; analysis choices fixed before running).
    quality 0, and T_XSM / T_GOES.
 
 Inputs: data/xsm/ (PRADAN XSM daily zips bundled in one zip, and the XSM
-archive bundle with the CALDB), outputs/asr/months_v3/<month>/.
+archive bundle with the CALDB), outputs/asr/months_v5/<month>/; data/xsm_l2/ (XSMDAS Level-2).
 Outputs: outputs/asr/xsm/.
 """
 import argparse
@@ -39,6 +39,19 @@ import solar  # noqa: E402
 ROOT = rm.ROOT
 OUT = os.path.join(ROOT, "outputs", "asr", "xsm")
 XSM_DIR = os.path.join(ROOT, "data", "xsm")
+XSM_L2_DIR = os.path.join(ROOT, "data", "xsm_l2")
+# activity regimes (R2 Major 3): flare enhancement = GOES XRS-B / its 12-h running 10th percentile
+REGIMES = {"non-flaring (<1.5)": (0, 1.5), "decay/weak (1.5-3)": (1.5, 3.0), "flaring (>=3)": (3.0, np.inf)}
+
+
+def flare_enhancement(times):
+    """XRS-B at each time divided by the local background (centred 12-h rolling 10th percentile)."""
+    g = pd.read_parquet(os.path.join(ROOT, "outputs", "asr", "solar", "goes_tem.parquet"), columns=["xrsb"])
+    t = pd.to_datetime(times)
+    g = g.loc[t.min() - pd.Timedelta("1D"): t.max() + pd.Timedelta("1D"), "xrsb"]
+    base = g.rolling("12h", center=True, min_periods=60).quantile(0.10)
+    i = np.clip(g.index.searchsorted(t), 0, len(g) - 1)
+    return g.values[i] / base.values[i]
 RSP_NAME = "caldb/CH2xsmrspwitharea_open20191214v01.rsp"
 MET_REF = pd.Timestamp("2017-01-01")  # MJDREF 57754, UTC
 FIT_BAND = (1.5, 10.0)
@@ -47,6 +60,9 @@ MIN_EXP = 30.0
 
 # -- XSM data ----------------------------------------------------------------
 def _caldb():
+    # PRADAN CALDB zip downloaded on its own (ch2_xsm_caldb_YYYYMMDD.zip)
+    for f in sorted(glob.glob(os.path.join(XSM_DIR, "*caldb*.zip")), reverse=True):
+        return zipfile.ZipFile(f)
     for f in glob.glob(os.path.join(XSM_DIR, "*.zip")):
         z = zipfile.ZipFile(f)
         for n in z.namelist():
@@ -56,7 +72,9 @@ def _caldb():
 
 
 def load_response():
-    h = fits.open(io.BytesIO(_caldb().read(RSP_NAME)))
+    z = _caldb()
+    name = RSP_NAME if RSP_NAME in z.namelist() else         sorted(n for n in z.namelist() if os.path.basename(n) == os.path.basename(RSP_NAME))[0]
+    h = fits.open(io.BytesIO(z.read(name)))
     m = h["MATRIX"].data
     R = np.array([np.asarray(row, float) for row in m["MATRIX"]])  # (n_E, 512), cm2 incl. area
     eb = h["EBOUNDS"].data
@@ -68,7 +86,25 @@ def load_spectra(month):
     """All XSM L2 1-min spectra of a month from the daily zips (read in memory)."""
     y, mo = month.split("/")
     rows = []
-    for f in glob.glob(os.path.join(XSM_DIR, "*.zip")):
+
+    def add(h):
+        d = h["SPECTRUM"].data
+        for i in range(len(d)):
+            rows.append({"t0": float(d["TSTART"][i]), "t1": float(d["TSTOP"][i]),
+                         "exposure": float(d["EXPOSURE"][i]), "filt": int(d["FILT_STATUS"][i]),
+                         "counts": np.asarray(d["COUNTS"][i], float),
+                         "stat_err": np.asarray(d["STAT_ERR"][i], float),
+                         "sys_err": np.asarray(d["SYS_ERR"][i], float)})
+    # Level-2 1-min spectra generated locally with XSMDAS v1.5 (src/asr/xsm_l2_day.sh)
+    for f in sorted(glob.glob(os.path.join(XSM_L2_DIR, f"ch2_xsm_{y}{mo}??_v*_level2.pha"))):
+        add(fits.open(f))
+    # daily zips downloaded individually from PRADAN (ch2_xsm_YYYYMMDD_v1.zip)
+    for f in sorted(glob.glob(os.path.join(XSM_DIR, f"ch2_xsm_{y}{mo}??_v*.zip"))) if not rows else []:
+        z = zipfile.ZipFile(f)
+        pha = [x for x in z.namelist() if x.endswith("_level2.pha")]
+        if pha:
+            add(fits.open(io.BytesIO(z.read(pha[0]))))
+    for f in glob.glob(os.path.join(XSM_DIR, "*.zip")) if not rows else []:
         z = zipfile.ZipFile(f)
         for n in z.namelist():
             if not (n.startswith(f"ch2_xsm_{y}{mo}") and n.endswith(".zip")):
@@ -176,17 +212,22 @@ class TwoTempTable(solar.SolarTable):
 _F = None
 
 
+_TWO = False
+
+
 def _init(calib, bkg, two_t):
-    global _F
-    _F = rm.make_fitter(calib, bkg, None, gamma_zero=True)
-    if two_t:
-        tab = TwoTempTable()
-        _F.fm.solar = tab
-        _F.fm.T_mk = None
+    """Same fitter configuration as the month run (v5: ARF, TEMP-binned detector, proxy band)."""
+    global _TWO
+    _TWO = two_t
+    rm._init(None, calib, bkg, None, True, calib.get("response", "filter"), tuple(calib.get("hi_band", (8.0, 20.0))))
 
 
 def _fit(r):
-    o = _F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"], T_mk=r["T_key"])
+    F, _ = rm._fitter_for(r["temp"])
+    if _TWO and not isinstance(F.fm.solar, TwoTempTable):
+        F.fm.solar = TwoTempTable()
+        F.fm.T_mk = None
+    o = F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"], T_mk=r["T_key"])
     o.pop("corr", None)
     o["source_file"] = r["source_file"]
     return {k: (str(v) if k == "T_mk" else v) for k, v in o.items()}
@@ -207,7 +248,7 @@ def _xinit(model):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--month", default="2024/12")
-    ap.add_argument("--months_root", default=os.path.join(ROOT, "outputs", "asr", "months_v3"))
+    ap.add_argument("--months_root", default=os.path.join(ROOT, "outputs", "asr", "months_v5"))
     ap.add_argument("--workers", type=int, default=12)
     ap.add_argument("--limit", type=int, default=None, help="test on a subset of CLASS spectra")
     a = ap.parse_args()
@@ -271,10 +312,11 @@ def main():
               f"quality 0: {(res[name].quality == 0).mean():.3f}", flush=True)
 
     # 3. comparison
-    m = cf.set_index("source_file")[["r_Mg", "r_Al", "goes_T_mk", "xsm_idx"]]
+    m = cf.set_index("source_file")[["r_Mg", "r_Al", "goes_T_mk", "goes_xrsb", "mid_utc", "xsm_idx"]]
     for n, d in res.items():
         m = m.join(d[["r_Mg", "r_Al", "quality"]].add_suffix(f"_{n}"))
     m["T1_xsm"] = xf.T1_mk.reindex(m.xsm_idx).values
+    m["flare_enh"] = flare_enhancement(m.mid_utc)
     m.to_parquet(os.path.join(OUT, f"class_refits_{tag}.parquet"))
     summ = {"month": tag, "n_xsm_minutes_month": int(len(xs)), "n_class_inside": int(len(cf)),
             "n_xsm_minutes_used": int(len(xf)),
@@ -292,6 +334,15 @@ def main():
         for e in ("Mg", "Al"):
             q = (m[f"r_{e}_{n}"][ok] / m[f"r_{e}_goes"][ok]).values
             summ[f"{n}_{e}_ratio_p16_p50_p84"] = list(np.percentile(q, [16, 50, 84]).round(4))
+        for rg, (lo, hi) in REGIMES.items():
+            sel = ok & (m.flare_enh >= lo) & (m.flare_enh < hi)
+            d = {"n": int(sel.sum())}
+            if sel.sum() >= 10:
+                d["T_ratio_p50"] = float(np.median(m.T1_xsm[sel] / m.goes_T_mk[sel]))
+                for e in ("Mg", "Al"):
+                    q = (m[f"r_{e}_{n}"][sel] / m[f"r_{e}_goes"][sel]).values
+                    d[f"{e}_p16_p50_p84"] = list(np.percentile(q, [16, 50, 84]).round(4))
+            summ[f"{n}_regime_{rg}"] = d
     summ["wall_s"] = time.perf_counter() - t0
     with open(os.path.join(OUT, f"summary_{tag}{'_test' if a.limit else ''}.json"), "w") as f:
         json.dump(summ, f, indent=1)

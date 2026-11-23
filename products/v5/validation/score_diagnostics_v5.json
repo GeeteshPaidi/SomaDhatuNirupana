@@ -1,0 +1,16 @@
+{
+ "grs_vs_sites_r": {
+  "Mg": 0.2084543735152752,
+  "Al": 0.2976114323297273
+ },
+ "class_split_half_r_Mg": 0.7910918387450775,
+ "class_reliability_Mg": 0.8833626748021511,
+ "grs_reliability_Mg": 0.7286600827869079,
+ "class_grs_ceiling_r_Mg": 0.8022911689356924,
+ "n_pixels_split_Mg": 1790,
+ "class_split_half_r_Al": 0.9578424033909401,
+ "class_reliability_Al": 0.9784673186483018,
+ "grs_reliability_Al": 0.7814682030083899,
+ "class_grs_ceiling_r_Al": 0.8744375890859942,
+ "n_pixels_split_Al": 1790
+}

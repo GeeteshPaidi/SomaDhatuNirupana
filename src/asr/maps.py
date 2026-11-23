@@ -8,7 +8,7 @@ sampling a 5x5 bilinear grid of points inside its 4 corners; the footprint
 contributes to every grid cell those points fall in (weight split equally
 among its sample points). Per-cell value = inverse-variance-weighted mean
 of the footprint ratios; quality layers = number of footprints, standard
-error of the weighted mean, robust scatter. No smoothing or infill is used
+error of the weighted mean (sqrt(sum f^2 w)/sum f w, f = shared fraction), robust scatter. No smoothing or infill is used
 for any statistic; an optional smoothed display layer is produced
 separately and its infilled cells are masked explicitly.
 
@@ -35,14 +35,32 @@ COLS = ["source_file", "month", "lat", "lon", "solarang", "sat_alt", "n_scd", "e
        [f"r_{e}" for e in ELS] + [f"sd_r_{e}" for e in ELS] + ["r_Ca", "sd_r_Ca", "gamma", "A"]
 
 
-def load_fits(months_dir=None, min_counts=300, min_xrsb=GOES_MIN_XRSB):
+def parse_months(spec):
+    """'2024_11:2026_05,2020_12' -> predicate on 'YYYY_MM' tags (None = all months)."""
+    if not spec:
+        return None
+    parts = [p.strip() for p in spec.split(",") if p.strip()]
+
+    def keep(tag):
+        for p in parts:
+            lo, _, hi = p.partition(":")
+            if (hi and lo <= tag <= hi) or (not hi and tag == lo):
+                return True
+        return False
+    return keep
+
+
+def load_fits(months_dir=None, min_counts=300, min_xrsb=GOES_MIN_XRSB, months=None):
     months_dir = months_dir or os.path.join(ROOT, "outputs", "asr", "months")
+    keep = parse_months(months)
     frames = []
     for d in sorted(glob.glob(os.path.join(months_dir, "*"))):
         f = os.path.join(d, "fits.parquet")
         tag = os.path.basename(d)
         if not os.path.exists(f) or not (len(tag) == 7 and tag[4] == "_"):
             continue  # skip sensitivity sub-runs (e.g. 2024_12_Tx1.2)
+        if keep and not keep(tag):
+            continue
         df = pd.read_parquet(f)
         frames.append(df[[c for c in COLS if c in df.columns]])
     df = pd.concat(frames, ignore_index=True)
@@ -120,19 +138,27 @@ def grid_maps(df, res=2.0, n_sub=5):
         out[f"hit_{name}"] = hit.reshape(nlat, nlon)
     m = df["use"].values
     cm = cell[m]
+    # per (footprint, cell) weight fraction f_ic = fraction of the footprint's sample points in the cell
+    ncell = nlat * nlon
+    key = (np.arange(cm.shape[0], dtype=np.int64)[:, None] * ncell + cm).ravel()
+    uk, cnt = np.unique(key, return_counts=True)
+    fpi, cidx, f = uk // ncell, uk % ncell, cnt / cm.shape[1]
     for e in ELS:
         r = df[f"r_{e}"].values[m]
         sd = df[f"sd_r_{e}"].values[m]
         ok = np.isfinite(r) & np.isfinite(sd) & (sd > 0)
         w = np.where(ok, 1.0 / np.maximum(sd, 1e-6) ** 2, 0.0)
         r0 = np.where(ok, r, 0.0)
-        W = np.bincount(cm.ravel(), weights=np.repeat(w * frac, cm.shape[1]), minlength=nlat * nlon)
-        WR = np.bincount(cm.ravel(), weights=np.repeat(w * r0 * frac, cm.shape[1]), minlength=nlat * nlon)
-        WR2 = np.bincount(cm.ravel(), weights=np.repeat(w * r0 ** 2 * frac, cm.shape[1]), minlength=nlat * nlon)
-        N = np.bincount(cm.ravel(), weights=np.repeat(ok * frac, cm.shape[1]), minlength=nlat * nlon)
+        a = f * w[fpi]  # weight of footprint i in cell c: a_ic = f_ic w_i
+        W = np.bincount(cidx, weights=a, minlength=ncell)
+        WR = np.bincount(cidx, weights=a * r0[fpi], minlength=ncell)
+        WR2 = np.bincount(cidx, weights=a * r0[fpi] ** 2, minlength=ncell)
+        A2S2 = np.bincount(cidx, weights=f ** 2 * w[fpi], minlength=ncell)  # sum a_ic^2 sigma_i^2
+        N = np.bincount(cidx, weights=f * ok[fpi], minlength=ncell)
         with np.errstate(invalid="ignore", divide="ignore"):
             mean = WR / W
-            se = 1.0 / np.sqrt(W)
+            # formal SE of the weighted mean of independent footprints: sqrt(sum a^2 s^2) / sum a
+            se = np.sqrt(A2S2) / W
             wstd = np.sqrt(np.maximum(WR2 / W - mean ** 2, 0))
         mean[W == 0] = np.nan
         se[W == 0] = np.nan
@@ -191,13 +217,17 @@ def main():
     ap.add_argument("--min_xrsb", type=float, default=GOES_MIN_XRSB)
     ap.add_argument("--tag", default="")
     ap.add_argument("--months_dir", default=None, help="default outputs/asr/months (v2); v3: outputs/asr/months_v3")
+    ap.add_argument("--months", default=None,
+                    help="restrict to months, e.g. '2020_12:2021_02,2022_03,2024_03,2024_11:2026_05' (default: all)")
     args = ap.parse_args()
     os.makedirs(OUT, exist_ok=True)
-    df = load_fits(months_dir=args.months_dir, min_counts=args.min_counts, min_xrsb=args.min_xrsb)
+    df = load_fits(months_dir=args.months_dir, min_counts=args.min_counts, min_xrsb=args.min_xrsb,
+                   months=args.months)
+    keep = parse_months(args.months)
     n_raw = 0
     for cj in glob.glob(os.path.join(args.months_dir or os.path.join(ROOT, "outputs", "asr", "months"), "*", "calib.json")):
         tag = os.path.basename(os.path.dirname(cj))
-        if len(tag) == 7:
+        if len(tag) == 7 and (not keep or keep(tag)):
             n_raw += json.load(open(cj))["n_files"]
     stages = stage_counts(df, n_raw)
     lat, lon = np.vstack(df["lat"].values), np.vstack(df["lon"].values)

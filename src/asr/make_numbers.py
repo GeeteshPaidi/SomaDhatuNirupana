@@ -18,9 +18,12 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 A = os.path.join(ROOT, "outputs", "asr")
 P = os.path.join(ROOT, "paper_asr")
 N = {}
-# Primary product = v3 (pre-declared: instrumental amplitude fixed to 0 on the dayside).
-PT = "_v3"
-PM = "months_v3"
+# Primary product = v5 (revision 1): v3 (instrumental amplitude fixed to 0 on the dayside)
+# + CLASS ARF + TEMP-binned detector calibration + 8-17 keV proxy band.
+PT = "_v5"
+PM = "months_v5"
+# Archives of the primary mapping set (the 2022-2023 archives form a separate epoch, epoch_numbers()).
+PRIMARY_MONTHS = "2020_12:2021_02,2022_03,2024_03,2024_11:2026_05"
 
 
 def put(name, value, fmt=None):
@@ -38,7 +41,9 @@ def comma(n):
 
 def ci(s):
     v = ast.literal_eval(s) if isinstance(s, str) else s
-    return f"[{v[0]:.2f}, {v[1]:.2f}]".replace("-", "$-$")
+    # A bound that rounds to -0.00 is shown with three decimals so the sign stays meaningful.
+    f = lambda x: f"{x:.3f}" if x != 0 and abs(x) < 0.005 else f"{x:.2f}"
+    return f"[{f(v[0])}, {f(v[1])}]".replace("-", "$-$")
 
 
 def sgn(x):
@@ -65,7 +70,10 @@ def stage_numbers():
     put("NConverged", comma(st["fit_converged"]))
     put("NMapped", comma(st["mapping_set"]))
     put("PctMapped", 100 * st["mapping_set"] / st["dayside_valid_geometry"], ".1f")
-    months = [d for d in glob.glob(os.path.join(A, PM, "*")) if len(os.path.basename(d)) == 7]
+    from maps import parse_months
+    keep = parse_months(PRIMARY_MONTHS)
+    months = [d for d in glob.glob(os.path.join(A, PM, "*"))
+              if len(os.path.basename(d)) == 7 and keep(os.path.basename(d))]
     put("NMonths", len(months))
     fp = s["footprint_size"]
     put("FootprintA", fp["side01_km_median"], ".0f")
@@ -87,9 +95,14 @@ def stage_numbers():
     for d in sorted(months):
         cj = json.load(open(os.path.join(d, "calib.json")))
         tag = os.path.basename(d)
+        tc = cj.get("temp_cal") or []
+        fw = [x["fwhm_1.49keV_eV"] for x in tc] or [cj["fwhm_1.49keV_eV"]]
+        src = cj.get("bkg_template_source", tag)
         rows.append({"month": tag.replace("_", "-"), "files": cj["n_files"], "dayside": cj["n_dayside"],
                      "mapped": int(nmap.get(tag, 0)), "gain": 1000 * cj["gain"], "offset": 1000 * cj["offset"],
-                     "fwhm": cj["fwhm_1.49keV_eV"], "bkg": "own" if cj.get("bkg_template_source", tag) == tag else "Dec 2024"})
+                     "fwhm": cj["fwhm_1.49keV_eV"], "fwlo": min(fw), "fwhi": max(fw),
+                     "tlo": tc[0]["t_lo"] if tc else np.nan, "thi": tc[-1]["t_hi"] if tc else np.nan,
+                     "bkg": "own" if src == tag else pd.Timestamp(src.replace("_", "-") + "-01").strftime("%b %Y")})
     t = pd.DataFrame(rows)
     # per-month quality-pass fraction (mapped / dayside)
     t["frac"] = 100 * t.mapped / t.dayside
@@ -102,10 +115,13 @@ def stage_numbers():
     put("PassMedPct", t.frac.median(), ".0f")
     os.makedirs(os.path.join(P, "tables"), exist_ok=True)
     with open(os.path.join(P, "tables", "months.tex"), "w") as f:
-        f.write("\\begin{tabular}{lrrrrrrl}\n\\toprule\nMonth & Files & Dayside & Mapped & $g$ (eV/ch) & $o$ (eV) & FWHM$_{1.49}$ (eV) & Umbra template\\\\\n\\midrule\n")
+        f.write("\\begin{tabular}{lrrrrrrrl}\n\\toprule\nMonth & Files & Dayside & Mapped & $g$ (eV/ch) & $o$ (eV) & "
+                "TEMP (\\textdegree C) & FWHM$_{1.49}$ (eV) & Umbra template\\\\\n\\midrule\n")
         for r in rows:
+            tr = "--" if not np.isfinite(r["tlo"]) else f"{r['tlo']:.0f} to {r['thi']:.0f}"
+            fr = f"{r['fwlo']:.0f}" if round(r["fwlo"]) == round(r["fwhi"]) else f"{r['fwlo']:.0f}--{r['fwhi']:.0f}"
             f.write(f"{r['month']} & {comma(r['files'])} & {comma(r['dayside'])} & {comma(r['mapped'])} & "
-                    f"{r['gain']:.3f} & {r['offset']:.1f} & {r['fwhm']:.0f} & {r['bkg']}\\\\\n")
+                    f"{r['gain']:.3f} & {r['offset']:.1f} & {tr} & {fr} & {r['bkg']}\\\\\n")
         f.write("\\bottomrule\n\\end{tabular}\n")
 
 
@@ -173,7 +189,7 @@ def solar_numbers():
 
 
 def synthetic_numbers():
-    f = os.path.join(A, "synth", "summary_gen5.0_fit5.0_v3.csv")
+    f = os.path.join(A, "synth", f"summary_gen5.0_fit5.0{PT}.csv")
     if not os.path.exists(f):
         return
     s = pd.read_csv(f)
@@ -190,7 +206,7 @@ def synthetic_numbers():
             fo.write(f"{e}/Si pull width & " + " & ".join(f"{x:.2f}" for x in s[f'{e}_pull_std']) + "\\\\\n")
         fo.write("Quality-0 fraction & " + " & ".join(f"{x:.2f}" for x in s.frac_quality0) + "\\\\\n")
         fo.write("\\bottomrule\n\\end{tabular}\n")
-    for tag, nm in [("gen6.5_fit5.0_v3", "Hot"), ("gen4.0_fit5.0_v3", "Cold")]:
+    for tag, nm in [(f"gen6.5_fit5.0{PT}", "Hot"), (f"gen4.0_fit5.0{PT}", "Cold")]:
         f2 = os.path.join(A, "synth", f"summary_{tag}.csv")
         if os.path.exists(f2):
             s2 = pd.read_csv(f2)
@@ -209,7 +225,7 @@ def validation_numbers():
         put(k + "R", r.pearson_r, ".2f")
         N[k + "CI"] = ci(r.pearson_ci95)
         put(k + "Rho", r.spearman_rho, ".2f")
-        put(k + "RhoP", r.spearman_p, ".2f")
+        N[k + "RhoP"] = ("$<$0.001" if r.spearman_p < 0.001 else f"{r.spearman_p:.3f}" if r.spearman_p < 0.01 else f"{r.spearman_p:.2f}")
         put(k + "LooLo", r.loo_min, ".2f")
         put(k + "LooHi", r.loo_max, ".2f")
         put(k + "Rmse", r.rmse, ".3f")
@@ -220,11 +236,14 @@ def validation_numbers():
         N[k + "CI"] = ci(r.pearson_ci95)
         put(k + "Rho", r.spearman_rho, ".2f")
         put(k + "N", comma(r.n))
-    v1 = pd.read_csv(os.path.join(V, "grs_stats_v1_prereg.csv"))
-    r1 = v1[v1.element == "Al"].iloc[0]
-    put("GrsAlRvOne", r1.pearson_r, ".2f")
-    N["GrsAlCIvOne"] = ci(r1.pearson_ci95)
+    if os.path.exists(os.path.join(V, "grs_stats_v1_prereg.csv")):
+        v1 = pd.read_csv(os.path.join(V, "grs_stats_v1_prereg.csv"))
+        r1 = v1[v1.element == "Al"].iloc[0]
+        put("GrsAlRvOne", r1.pearson_r, ".2f")
+        N["GrsAlCIvOne"] = ci(r1.pearson_ci95)
     for tag, nm in [("_min1000", "MinK"), ("_min3000", "MinKKK")]:
+        if not os.path.exists(os.path.join(V, f"grs_stats{PT}{tag}.csv")):
+            continue
         gg = pd.read_csv(os.path.join(V, f"grs_stats{PT}{tag}.csv"))
         for e in ["Mg", "Al"]:
             put(f"Grs{e}R{nm}", gg[gg.element == e].iloc[0].pearson_r, ".2f")
@@ -277,14 +296,28 @@ def tsens_numbers():
 def diag_numbers():
     V = os.path.join(A, "validation")
     d = json.load(open(os.path.join(V, f"score_diagnostics{PT}.json")))
-    d2 = json.load(open(os.path.join(V, "score_diagnostics.json")))
     put("GrsSitesMg", d["grs_vs_sites_r"]["Mg"], ".2f")
     put("GrsSitesAl", d["grs_vs_sites_r"]["Al"], ".2f")
     for e in ["Mg", "Al"]:
         put(f"Rel{e}", d[f"class_reliability_{e}"], ".2f")
         put(f"RelGrs{e}", d[f"grs_reliability_{e}"], ".2f")
         put(f"Ceil{e}", d[f"class_grs_ceiling_r_{e}"], ".2f")
-        put(f"OldGrs{e}", d[f"old_pipeline_vs_grs_r_{e}"], ".2f")
+        if f"old_pipeline_vs_grs_r_{e}" in d:
+            put(f"OldGrs{e}", d[f"old_pipeline_vs_grs_r_{e}"], ".2f")
+    m = json.load(open(os.path.join(V, f"alt_median_posthoc{PT}.json")))
+    put("MedGrsMg", m["median_Mg_grs_r"], ".2f")
+    put("MedGrsAl", m["median_Al_grs_r"], ".2f")
+    put("MedRelAl", m["median_Al_reliability"], ".2f")
+    # First-stage gamma = 0 model (v3fix): controlled reference for the free-gamma alternative.
+    g3p = os.path.join(V, "grs_stats_v3fix.csv")
+    if os.path.exists(g3p):
+        g3 = pd.read_csv(g3p)
+        for e in ["Mg", "Al"]:
+            put(f"Grs{e}RvThree", g3[g3.element == e].iloc[0].pearson_r, ".2f")
+    # Earlier-model (v2, gamma0) numbers: kept only when their inputs exist on this machine.
+    if not os.path.exists(os.path.join(V, "score_diagnostics.json")):
+        return
+    d2 = json.load(open(os.path.join(V, "score_diagnostics.json")))
     put("RelAlvTwo", d2["class_reliability_Al"], ".2f")
     put("RelMgvTwo", d2["class_reliability_Mg"], ".2f")
     put("CeilAlvTwo", d2["class_grs_ceiling_r_Al"], ".2f")
@@ -300,10 +333,6 @@ def diag_numbers():
     smv2 = json.load(open(os.path.join(A, "maps", "summary_2deg.json")))
     put("NMappedvTwo", comma(smv2["stages"]["mapping_set"]))
     put("MedAlvTwo", smv2["mapping_set_ratio_percentiles"]["Al"][2], ".2f")
-    m = json.load(open(os.path.join(V, f"alt_median_posthoc{PT}.json")))
-    put("MedGrsMg", m["median_Mg_grs_r"], ".2f")
-    put("MedGrsAl", m["median_Al_grs_r"], ".2f")
-    put("MedRelAl", m["median_Al_reliability"], ".2f")
     g0 = json.load(open(os.path.join(V, "gamma0_posthoc.json")))
     put("GzN", comma(g0["n"]))
     put("GzPct", 100 * g0["n"] / int(N["NMapped"].replace("{,}", "")), ".0f")
@@ -363,22 +392,163 @@ def xsm_numbers():
                 key = f"Xsm{nm}{e}M{s}"
                 put(key, v, "+.0f")
                 N[key] = N[key].replace("-", "$-$")
+    # R2 Major 3: split by activity regime (flare enhancement = GOES XRS-B / 12-h running 10th percentile)
+    regimes = [("Near baseline ($<1.5$)", 0, 1.5, "Lo"), ("Moderate enhancement (1.5--3)", 1.5, 3.0, "Mid"),
+               (r"Strong enhancement ($\geq3$)", 3.0, np.inf, "Hi")]
+    sg = lambda v: "0" if round(v) == 0 else f"{v:+.0f}".replace("-", "$-$")  # noqa: E731
+    rows = []
+    for lab, lo, hi, key in regimes:
+        inr = (j.flare_enh >= lo) & (j.flare_enh < hi)
+        cells = []
+        # common subset: good fits with GOES, XSM 1T and XSM 2T spectra, so both columns share one N
+        both = inr & (j.quality_goes == 0) & (j.quality_xsm1t == 0) & (j.quality_xsm2t == 0)
+        for n, nm in [("xsm1t", "One"), ("xsm2t", "Two")]:
+            ok = both
+            put(f"XsmReg{key}{nm}N", comma(ok.sum()))
+            for e in ["Mg", "Al"]:
+                r = 100 * (j.loc[ok, f"r_{e}_{n}"] / j.loc[ok, f"r_{e}_goes"] - 1)
+                v = np.median(r) if ok.sum() >= 10 else np.nan
+                N[f"XsmReg{key}{nm}{e}"] = sg(v) if np.isfinite(v) else "--"
+                cells.append((v, np.percentile(r, 16) if ok.sum() >= 10 else np.nan,
+                              np.percentile(r, 84) if ok.sum() >= 10 else np.nan))
+        ok1 = both
+        tr = np.median(j.T1_xsm[ok1] / j.goes_T_mk[ok1]) if ok1.sum() >= 10 else np.nan
+        put(f"XsmReg{key}TRatio", tr, ".2f")
+        rows.append((lab, int(ok1.sum()), tr, np.median(j.goes_T_mk[ok1]) if ok1.sum() else np.nan, cells))
+    put("XsmNBoth", comma(int(((j.quality_goes == 0) & (j.quality_xsm1t == 0) & (j.quality_xsm2t == 0)).sum())))
+    fmt = lambda c: "--" if not np.isfinite(c[0]) else f"{sg(c[0])} ({sg(c[1])}, {sg(c[2])})"  # noqa: E731
+    with open(os.path.join(P, "tables", "xsm_regimes.tex"), "w") as f:
+        f.write("\\begin{tabular}{lrcccccc}\n\\toprule\n"
+                " & & & & \\multicolumn{2}{c}{XSM isothermal} & \\multicolumn{2}{c}{XSM two-temperature}\\\\\n"
+                "Regime ($F$) & $N$ & $T_\\mathrm{GOES}$ (MK) & $T_\\mathrm{XSM}/T_\\mathrm{GOES}$ & Mg/Si & Al/Si & Mg/Si & Al/Si\\\\\n"
+                "\\midrule\n")
+        for lab, n, tr, tg, c in rows:
+            f.write(f"{lab} & {comma(n)} & {tg:.1f} & {tr:.2f} & " + " & ".join(fmt(x) for x in c) + "\\\\\n")
+        f.write("\\bottomrule\n\\end{tabular}\n")
+
+
+def epoch_numbers():
+    """R1.2: per-year pass fractions for 2020-2023 and the two-epoch comparison."""
+    import maps as mp
+    # same criteria as the mapping set: quality 0, GOES >= B1, ratios not at a bound, >= 300 counts
+    df = mp.load_fits(os.path.join(A, PM), months="2020_12:2023_12")
+    t = df.groupby("month").agg(n=("use", "size"), q0=("use", "sum")).reset_index()
+    t["year"] = t.month.str[:4]
+    put("NArchEarly", len(t))
+    for y, g in t.groupby("year"):
+        nm = {"2020": "Twenty", "2021": "TwentyOne", "2022": "TwentyTwo", "2023": "TwentyThree"}[y]
+        put(f"PassYr{nm}", 100 * g.q0.sum() / g.n.sum(), ".0f")
+        put(f"NSpecYr{nm}", comma(g.n.sum()))
+    t["frac"] = 100 * t.q0 / t.n
+    for y in ["2021", "2022", "2023"]:
+        g = t[t.year == y]
+        nm = {"2021": "TwentyOne", "2022": "TwentyTwo", "2023": "TwentyThree"}[y]
+        put(f"PassYr{nm}Lo", g.frac.min(), ".0f")
+        put(f"PassYr{nm}Hi", g.frac.max(), ".0f")
+    fr = lambda q, x: "0" if q == 0 else ("$<$0.1" if x < 0.05 else f"{x:.1f}")  # noqa: E731
+    with open(os.path.join(P, "tables", "early_months.tex"), "w") as f:
+        f.write("\\begin{tabular}{lrrr}\n\\toprule\nMonth & Dayside spectra & Pass & Fraction (\\%)\\\\\n\\midrule\n")
+        for r in t.itertuples():
+            f.write(f"{r.month.replace('_', '-')} & {comma(r.n)} & {comma(r.q0)} & {fr(r.q0, r.frac)}\\\\\n")
+        f.write("\\bottomrule\n\\end{tabular}\n")
+    e = json.load(open(os.path.join(A, "epochs", "epoch_compare.json")))
+    for k, nm in [("A", "A"), ("B", "B")]:
+        ep = e["epochs"][k]
+        put(f"Ep{nm}NMonths", ep["n_months"])
+        put(f"Ep{nm}NFp", comma(ep["n_footprints"]))
+        put(f"Ep{nm}Tmed", ep["goes_T_mk_median"], ".1f")
+        put(f"Ep{nm}Fwhm", ep["fwhm_Al_eV_median"], ".0f")
+    for el in ["Mg", "Al"]:
+        for c in e["compare"][el]:
+            b = {2: "Two", 6: "Six", 10: "Ten"}[c["block_deg"]]
+            put(f"Ep{el}{b}R", c["pearson_r"], ".2f")
+            put(f"Ep{el}{b}N", comma(c["n_cells"]))
+            put(f"Ep{el}{b}Ratio", c["median_ratio_B_over_A"], ".3f")
+    V = os.path.join(A, "validation")
+    for tag, nm in [("_v5_eA", "A"), ("_v5_eB", "B")]:
+        g = pd.read_csv(os.path.join(V, f"grs_stats{tag}.csv"))
+        s = pd.read_csv(os.path.join(V, f"sites_stats{tag}.csv"))
+        for el in ["Mg", "Al"]:
+            put(f"Ep{nm}Grs{el}R", g[g.element == el].iloc[0].pearson_r, ".2f")
+            r = s[(s.radius_deg == 2.0) & (s.element == el)].iloc[0]
+            put(f"Ep{nm}Site{el}R", r.pearson_r, ".2f")
+            N[f"Ep{nm}Site{el}CI"] = ci(r.pearson_ci95)
+
+
+def new_sites_numbers():
+    """R2 Major 2: Chang'E-3/5/6 and Chandrayaan-3 sites (added after the pre-declared validation)."""
+    from scipy.stats import pearsonr
+    n = pd.read_csv(os.path.join(ROOT, "revision", f"new_sites{PT}.csv"))
+    n = n[n.radius_deg == 2.0]
+    s = pd.read_csv(os.path.join(A, "validation", f"sites_table{PT}.csv"))
+    s = s[s.radius_deg == 2.0]
+    key = {"Chang'E-3": "Ng2023", "Chang'E-5": "Li2022CE5", "Chang'E-6": "Li2024CE6", "Chandrayaan-3": "Vadawale2024"}
+    kind = {"Chang'E-3": "APXS", "Chang'E-5": "returned soil", "Chang'E-6": "returned soil", "Chandrayaan-3": "APXS"}
+    for e in ["Mg", "Al"]:
+        a, b = s[s.element == e], n[n.element == e]
+        x = np.r_[a.class_ratio, b.class_ratio]
+        y = np.r_[a.ref_ratio, b.ref_ratio]
+        put(f"NewSite{e}R", pearsonr(b.class_ratio, b.ref_ratio)[0], ".2f")
+        put(f"AllSite{e}R", pearsonr(x, y)[0], ".2f")
+        put(f"AllSite{e}Scale", np.median(x / y), ".2f")
+    put("NewSiteFpMin", comma(n.n_footprints.min()))
+    put("NewSiteFpMax", comma(n.n_footprints.max()))
+    with open(os.path.join(P, "tables", "new_sites.tex"), "w") as f:
+        f.write("\\begin{tabular}{lrrlrrrr}\n\\toprule\nSite & Lat & Lon & Reference & \\multicolumn{2}{c}{Mg/Si} & "
+                "\\multicolumn{2}{c}{Al/Si}\\\\\n & (\\textdegree) & (\\textdegree E) & & ref. & CLASS & ref. & CLASS\\\\\n\\midrule\n")
+        for site in key:
+            r = n[n.site == site].set_index("element")
+            f.write(f"{site} & {r.lat.iloc[0]:.2f} & {r.lon.iloc[0]:.2f} & {kind[site]}, \\citet{{{key[site]}}} & "
+                    f"{r.loc['Mg', 'ref_ratio']:.3f} & {r.loc['Mg', 'class_ratio']:.3f}$\\pm${r.loc['Mg', 'class_se']:.3f} & "
+                    f"{r.loc['Al', 'ref_ratio']:.3f} & {r.loc['Al', 'class_ratio']:.3f}$\\pm${r.loc['Al', 'class_se']:.3f}\\\\\n")
+        f.write("\\bottomrule\n\\end{tabular}\n")
+
+
+def goes1s_numbers():
+    """R1.3: exposure-matched GOES 1 s (flx1s, rescaled to avg1m per minute) vs nearest 1 min."""
+    j = pd.read_parquet(os.path.join(A, "months_v5_g1s", "compare.parquet"))
+    put("GosN", comma(len(j)))
+    dT = 100 * (j.goes_T_mk_s / j.goes_T_mk_b - 1)
+    for p_, nm in [(50, "Med"), (5, "Lo"), (95, "Hi")]:
+        put(f"GosT{nm}", np.percentile(dT, p_), "+.1f")
+    big = dT.abs() > 10
+    put("GosBigPct", 100 * big.mean(), ".0f")
+    for e in ["Mg", "Al"]:
+        d = 100 * (j[f"r_{e}_s"] / j[f"r_{e}_b"] - 1)
+        for sub, sn in [(slice(None), ""), (big, "Big")]:
+            x = d[sub]
+            for p_, nm in [(50, "Med"), (16, "Lo"), (84, "Hi")]:
+                put(f"Gos{e}{sn}{nm}", np.percentile(x, p_), "+.1f")
+    for k in list(N):
+        if k.startswith("Gos") and isinstance(N[k], str) and N[k].startswith("-"):
+            N[k] = "$-$" + N[k][1:]
 
 
 def main():
+    base = os.path.join(ROOT, "products", "headline_numbers.json")
+    old = json.load(open(base)) if os.path.exists(base) else {}
     for fn in [header_numbers, stage_numbers, calib_numbers, background_numbers, solar_numbers,
-               synthetic_numbers, validation_numbers, tsens_numbers, diag_numbers, xsm_numbers]:
+               synthetic_numbers, validation_numbers, tsens_numbers, diag_numbers, xsm_numbers, epoch_numbers, goes1s_numbers, new_sites_numbers]:
         try:
             fn()
         except Exception as ex:  # noqa: BLE001
             print(f"WARNING {fn.__name__}: {ex}")
+    # Values whose inputs are not available here keep their previous (v3) value, and are
+    # listed so that every carried-over number is reviewed before submission.
+    stale = sorted(k for k in old if k not in N)
+    for k in stale:
+        N[k] = old[k]
+    with open(os.path.join(A, "headline_numbers_stale.txt"), "w") as f:
+        f.write("\n".join(stale) + "\n")
+    print(f"{len(N) - len(stale)} numbers recomputed, {len(stale)} carried over from {base}:")
+    print(" ".join(stale))
     with open(os.path.join(A, "headline_numbers.json"), "w") as f:
         json.dump(N, f, indent=1, sort_keys=True)
     with open(os.path.join(P, "numbers.tex"), "w") as f:
         f.write("% AUTO-GENERATED by src/asr/make_numbers.py -- do not edit\n")
         for k, v in sorted(N.items()):
+            v = "0" if str(v) in ("$-$0", "-0", "+0") else v
             f.write(f"\\newcommand{{\\{k}}}{{{v}}}\n")
-    print(json.dumps(N, indent=1, sort_keys=True))
 
 
 if __name__ == "__main__":

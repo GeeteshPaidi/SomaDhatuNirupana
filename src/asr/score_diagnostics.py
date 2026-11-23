@@ -110,26 +110,28 @@ def main():
         out[f"class_grs_ceiling_r_{e}"] = float(np.sqrt(max(rel_c[e], 0) * max(rel_g[e], 0)))
         out[f"n_pixels_split_{e}"] = len(per[e][0])
 
-    # 5. old pipeline vs GRS
-    old = pd.read_parquet(os.path.join(ROOT, "data", "processed", "catalogue_expanded_result.parquet"),
-                          columns=["footprint", "success", "conc_Mg", "conc_Al", "conc_Si"])
-    old = old[old.success == True]  # noqa: E712
-    fp = np.array([np.mean(np.array(list(x)), axis=0) for x in old.footprint.values])
-    olat, olon = fp[:, 0], ((fp[:, 1] + 180) % 360) - 180
-    t2 = va.grs_compare.__wrapped__ if hasattr(va.grs_compare, "__wrapped__") else None  # noqa: F841
-    res = {e: ([], []) for e in ELS}
-    for _, p in g.iterrows():
-        inside = (olat >= p.MIN_LAT) & (olat < p.MAX_LAT) & (olon >= p.MIN_LON) & (olon < p.MAX_LON)
-        if inside.sum() < 20:
-            continue
+    # 5. old pipeline vs GRS (pipeline-independent; skipped when the old catalogue is not present)
+    old_cat = os.path.join(ROOT, "data", "processed", "catalogue_expanded_result.parquet")
+    if os.path.exists(old_cat):
+        old = pd.read_parquet(old_cat,
+                              columns=["footprint", "success", "conc_Mg", "conc_Al", "conc_Si"])
+        old = old[old.success == True]  # noqa: E712
+        fp = np.array([np.mean(np.array(list(x)), axis=0) for x in old.footprint.values])
+        olat, olon = fp[:, 0], ((fp[:, 1] + 180) % 360) - 180
+        t2 = va.grs_compare.__wrapped__ if hasattr(va.grs_compare, "__wrapped__") else None  # noqa: F841
+        res = {e: ([], []) for e in ELS}
+        for _, p in g.iterrows():
+            inside = (olat >= p.MIN_LAT) & (olat < p.MAX_LAT) & (olon >= p.MIN_LON) & (olon < p.MAX_LON)
+            if inside.sum() < 20:
+                continue
+            for e in ELS:
+                rr = (old[f"conc_{e}"].values[inside] / old["conc_Si"].values[inside])
+                rr = rr[np.isfinite(rr)]
+                res[e][0].append(p[f"W_{'MGO' if e=='Mg' else 'AL2O3'}"] * M[e] / (p.W_SIO2 * M["Si"]))
+                res[e][1].append(np.median(rr))
         for e in ELS:
-            rr = (old[f"conc_{e}"].values[inside] / old["conc_Si"].values[inside])
-            rr = rr[np.isfinite(rr)]
-            res[e][0].append(p[f"W_{'MGO' if e=='Mg' else 'AL2O3'}"] * M[e] / (p.W_SIO2 * M["Si"]))
-            res[e][1].append(np.median(rr))
-    for e in ELS:
-        out[f"old_pipeline_vs_grs_r_{e}"] = float(pearsonr(res[e][0], res[e][1])[0])
-        out[f"old_pipeline_n_pixels_{e}"] = len(res[e][0])
+            out[f"old_pipeline_vs_grs_r_{e}"] = float(pearsonr(res[e][0], res[e][1])[0])
+            out[f"old_pipeline_n_pixels_{e}"] = len(res[e][0])
     with open(os.path.join(OUT, f"score_diagnostics{args.tag}.json"), "w") as f:
         json.dump(out, f, indent=1)
     print(json.dumps(out, indent=1))

@@ -36,26 +36,31 @@ FIXED = None  # None -> fitter default (Ti, Fe fixed); {} -> all free
 RANGES = {"Mg": (0.10, 0.35), "Al": (0.20, 0.80), "Ca": (0.30, 0.60), "Ti": (0.005, 0.30), "Fe": (0.10, 0.80)}
 
 _G = {}
+EFF = {"filter": xm.class_filter_transmission, "arf": xm.class_arf_efficiency}
+_OPT = {"response": "filter", "hi_band": (8.0, 20.0)}
 
 
 def _fm(kT, secondary, use_solar):
     if use_solar:  # kT is a temperature in MK for the CHIANTI table
         import solar
         return xm.ForwardModel(secondary=secondary, e_max=15, de=0.005, solar=solar.SolarTable(), T_mk=kT,
-                               efficiency=xm.class_filter_transmission)
+                               efficiency=EFF[_OPT["response"]])
     return xm.ForwardModel(kT=kT, secondary=secondary, e_max=15, de=0.005)
 
 
-def _init(kT_gen, kT_fit, bkg_path, inst_path=None, use_solar=False):
+def _init(kT_gen, kT_fit, bkg_path, inst_path=None, use_solar=False, response="filter", hi_band=(8.0, 20.0),
+          cal=None):
+    _OPT.update(response=response, hi_band=tuple(hi_band))
     if bkg_path.endswith(".npz"):  # legacy single month-mean nightside template, no instrumental term
         d = np.load(bkg_path)
         bkg, inst = d["night"] / d["tn"], None
     else:
         bkg = np.load(bkg_path)
         inst = np.load(inst_path) if inst_path else None
-    det = xm.Detector(**CAL)
-    _G["gen"] = ft.SpectrumFitter(_fm(kT_gen, True, use_solar), det, bkg, inst_rate=inst)
-    _G["fit"] = ft.SpectrumFitter(_fm(kT_fit, False, use_solar), det, bkg, inst_rate=inst,
+    det = xm.Detector(**(cal or CAL))
+    hb = _OPT["hi_band"]
+    _G["gen"] = ft.SpectrumFitter(_fm(kT_gen, True, use_solar), det, bkg, inst_rate=inst, hi_band=hb)
+    _G["fit"] = ft.SpectrumFitter(_fm(kT_fit, False, use_solar), det, bkg, inst_rate=inst, hi_band=hb,
                                   fixed_ratios=FIXED if FIXED is not None else None)
 
 
@@ -124,11 +129,20 @@ def main():
     ap.add_argument("--tag", default="")
     ap.add_argument("--solar", action="store_true", help="CHIANTI table; kT_gen/kT_fit are T in MK")
     ap.add_argument("--out_dir", default=os.path.join(ROOT, "outputs", "asr", "synth"))
+    ap.add_argument("--response", choices=sorted(EFF), default="filter")
+    ap.add_argument("--hi_band", type=float, nargs=2, default=[8.0, 20.0])
+    ap.add_argument("--cal_json", default=None, help="take gain/offset/sigma0 from a month's calib.json")
     args = ap.parse_args()
+    cal = None
+    if args.cal_json:
+        import json
+        c = json.load(open(args.cal_json))
+        cal = {k: c[k] for k in ("gain", "offset", "sigma0")}
     os.makedirs(args.out_dir, exist_ok=True)
     levels = [int(x) for x in args.levels.split(",")]
     jobs = [(1000 * li + i, lv) for li, lv in enumerate(levels) for i in range(args.n)]
-    with Pool(args.workers, initializer=_init, initargs=(args.kT_gen, args.kT_fit, args.bkg, args.inst, args.solar)) as p:
+    with Pool(args.workers, initializer=_init, initargs=(args.kT_gen, args.kT_fit, args.bkg, args.inst, args.solar,
+                                                         args.response, args.hi_band, cal)) as p:
         res = pd.DataFrame(p.map(one, jobs, chunksize=4))
     tag = f"gen{args.kT_gen}_fit{args.kT_fit}{args.tag}"
     res.to_parquet(os.path.join(args.out_dir, f"recovery_{tag}.parquet"), index=False)

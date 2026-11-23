@@ -1,0 +1,22 @@
+{
+ "mean_Mg_grs_r": 0.6842926839526384,
+ "mean_Mg_split_half_r": 0.7910918387450775,
+ "mean_Mg_reliability": 0.8833626748021511,
+ "mean_Al_grs_r": 0.7282342582758295,
+ "mean_Al_split_half_r": 0.9578424033909401,
+ "mean_Al_reliability": 0.9784673186483018,
+ "median_Mg_grs_r": 0.6696966945827452,
+ "median_Mg_split_half_r": 0.7396311086828081,
+ "median_Mg_reliability": 0.8503309753328482,
+ "median_Al_grs_r": 0.7256048296149417,
+ "median_Al_split_half_r": 0.9411448045215958,
+ "median_Al_reliability": 0.9696801622726392,
+ "median_Mg_grs_ci95": [
+  0.6233486173456895,
+  0.709296017289372
+ ],
+ "median_Al_grs_ci95": [
+  0.6664169687292903,
+  0.7680280617726156
+ ]
+}

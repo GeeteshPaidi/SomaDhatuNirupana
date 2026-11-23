@@ -62,7 +62,7 @@ def plot_fit(F, r, o, ax_top, ax_bot, title):
     ax_bot.plot(E, dev, ".", ms=2, color="k")
     ax_bot.axhline(0, color="r", lw=0.5)
     ax_bot.set_xlim(1.1, 7.6)
-    ax_bot.set_ylabel("dev. resid", fontsize=7)
+    ax_bot.set_ylabel(r"deviance resid. $\delta_k$", fontsize=7)
     ax_bot.set_xlabel("Energy (keV)", fontsize=7)
 
 
@@ -88,7 +88,9 @@ def main():
     picks = {"high": df.iloc[[n - 1 - i * 5 for i in range(args.n_per)]],
              "median": df.iloc[[n // 2 + i * 5 for i in range(args.n_per)]],
              "low": df.iloc[[int(0.05 * n) + i * 5 for i in range(args.n_per)]]}
-    F = rm.make_fitter(calib, bkg, inst, args.kT, args.gamma_zero)
+    # Same fitter configuration as the month run (v5: ARF, TEMP-binned detector, 8-17 keV band).
+    rm._init(args.kT, calib, bkg, inst, args.gamma_zero, calib.get("response", "filter"),
+             tuple(calib.get("hi_band", (8.0, 20.0))))
     rows = sum(len(v) for v in picks.values())
     fig, axes = plt.subplots(2 * rows, 1, figsize=(9, 3.2 * rows),
                              gridspec_kw={"height_ratios": [3, 1] * rows})
@@ -98,6 +100,7 @@ def main():
             path = glob.glob(os.path.join(ROOT, "data", "raw", *args.month.split("/"), "**", row["source_file"]),
                              recursive=True)[0]
             r = rm.read_one(path)
+            F, _ = rm._fitter_for(r["temp"])
             o = F.fit(r["counts"], r["exposure"], r["n_scd"], r["solarang"],
                       T_mk=None if args.kT else row.get("goes_T_mk"))
             ttl = (f"[{lvl}] {row['source_file']}  counts={o['n_counts_fit']:.0f}  SOLARANG={r['solarang']:.1f}  "

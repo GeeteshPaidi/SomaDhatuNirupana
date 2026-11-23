@@ -6,66 +6,86 @@ The following choices were fixed and logged before the validation of the primary
 \item the statistics: Pearson and Spearman coefficients with bootstrap 95\% confidence intervals, leave-one-site-out ranges, and a 20\textdegree{} spatial block bootstrap for GRS;
 \item the criterion for regarding an element as supported by both comparisons: Pearson $r>0$ with a 95\% confidence interval excluding zero in both the landing-site and GRS tests.
 \end{itemize}
-The history of the primary model, including an earlier model whose validation motivated it, is given in \cref{sec:alt}.
+The dayside instrumental amplitude of the primary model was fixed after an earlier comparison with the alternative model (\cref{sec:likelihood,sec:alt}); the choices above were not changed afterwards. Both comparisons use elemental weight ratios on both sides: the CLASS values are concentrations derived through the forward model (\cref{sec:products}), and the reference oxide abundances are converted with stoichiometric factors (\cref{sec:refdata}). No numerical equality between line-flux ratios and abundance ratios is assumed.
 
 \subsection{Landing sites}\label{sec:sites}
-\Cref{tab:sites} lists the returned-soil ratios (average soil compositions; \citealp{Heiken1991}, Table 7.15; \citealp{Basu1998}) and the CLASS weighted means within 2\textdegree{} of each site.
+\Cref{tab:sites} lists the returned-soil ratios (average soil compositions; \citealp{Heiken1991}, Table 7.15; \citealp{Basu1998}) and the CLASS weighted means of all quality-0 footprints whose centres lie within 2\textdegree{} (great-circle distance, about \SI{61}{km}) of each site, each with its full inverse-variance weight. The errors are formal statistical standard errors, $(\sum_i w_i)^{-1/2}$.
 \begin{itemize}
 \item \emph{Al/Si, 2\textdegree:} $r=\SiteAlTwoR$ (95\% CI \SiteAlTwoCI), Spearman $\rho=\SiteAlTwoRho$ ($p=\SiteAlTwoRhoP$), leave-one-out range \SiteAlTwoLooLo--\SiteAlTwoLooHi.
 \item \emph{Al/Si, other radii:} $r=\SiteAlOneR$ (CI \SiteAlOneCI) at 1\textdegree{} and $r=\SiteAlFiveR$ at 5\textdegree.
-\item \emph{Mg/Si, 2\textdegree:} $r=\SiteMgTwoR$ (\SiteMgTwoCI); $r=\SiteMgOneR$ at 1\textdegree{} and $\SiteMgFiveR$ at 5\textdegree.
+\item \emph{Mg/Si, 2\textdegree:} $r=\SiteMgTwoR$ (\SiteMgTwoCI), Spearman $\rho=\SiteMgTwoRho$ ($p=\SiteMgTwoRhoP$), leave-one-out range \SiteMgTwoLooLo--\SiteMgTwoLooHi.
+\item \emph{Mg/Si, other radii:} $r=\SiteMgOneR$ (CI \SiteMgOneCI) at 1\textdegree{} and $r=\SiteMgFiveR$ (CI \SiteMgFiveCI) at 5\textdegree.
 \end{itemize}
-The CLASS site means have small statistical errors (\cref{tab:sites}). Their scatter about the soil values is therefore mostly systematic. Footprints of $25\times37$\,km average over terrain much larger than the sampled landing sites, and several sites lie on mare--highland contacts (Apollo 15, 16, 17; Luna 20). Al/Si meets the site criterion; Mg/Si does not.
+Omitting Apollo 16 gives the lowest leave-one-site-out correlation for both ratios ($r=\SiteAlTwoLooLo$ for Al/Si and \SiteMgTwoLooLo{} for Mg/Si); the larger drop for Mg/Si shows that its site correlation depends strongly on that site.
+The CLASS site means have small statistical errors (\cref{tab:sites}). Their scatter about the soil values is therefore mostly systematic. Footprints of $25\times37$\,km average over terrain much larger than the sampled landing sites, and several sites lie on mare--highland contacts (Apollo 15, 16, 17; Luna 20). Both ratios meet the site criterion, and both do so in each epoch separately (\cref{sec:epochs}). The Mg/Si result is the weaker of the two: its rank correlation is not significant ($p=\SiteMgTwoRhoP$), and at 1\textdegree{} its 95\% interval includes zero.
 
 \begin{table*}[!tp]
 \centering
-\caption{Landing-site validation at 2\textdegree{} radius: returned-soil weight ratios and CLASS weighted means $\pm$ standard error.}\label{tab:sites}
+\caption{Landing-site validation at 2\textdegree{} radius: returned-soil element weight ratios and CLASS element weight ratios (weighted means $\pm$ formal standard error) of the quality-0 footprints whose centres lie within 2\textdegree.}\label{tab:sites}
 \input{tables/sites}
 \end{table*}
 
 \subsection{Lunar Prospector GRS}\label{sec:grs}
-All \GrsMgN{} 5\textdegree{} equal-area GRS pixels contain at least 20 CLASS footprints. On these pixels:
+For each 5\textdegree{} equal-area GRS pixel, the CLASS value is the inverse-variance-weighted mean of the quality-0 footprints whose centres lie in the pixel. All \GrsMgN{} pixels contain at least 20 footprints. On these pixels:
 \begin{itemize}
 \item \emph{Al/Si:} $r=\GrsAlR$ (block-bootstrap 95\% CI \GrsAlCI; Spearman $\rho=\GrsAlRho$);
 \item \emph{Mg/Si:} $r=\GrsMgR$ (\GrsMgCI; $\rho=\GrsMgRho$).
 \end{itemize}
-Both meet the GRS criterion (\cref{fig:validation}). The correlations are stable under the count-threshold test: Al/Si $r=\GrsAlR$, \GrsAlRMinK{} and \GrsAlRMinKKK, and Mg/Si $r=\GrsMgR$, \GrsMgRMinK{} and \GrsMgRMinKKK, for thresholds of 300, 1000 and 3000 counts (\NMapped, \NMappedMinK{} and \NMappedMinKKK{} spectra). Restricting to GOES $\geq$ B3 leaves them unchanged.
+Both meet the GRS criterion (\cref{fig:validation}). The correlations are stable under the count-threshold test: Al/Si $r=\GrsAlR$, \GrsAlRMinK{} and \GrsAlRMinKKK, and Mg/Si $r=\GrsMgR$, \GrsMgRMinK{} and \GrsMgRMinKKK, for thresholds of 300, 1000 and 3000 counts (\NMapped, \NMappedMinK{} and \NMappedMinKKK{} spectra). Restricting to GOES $\geq$ B3 leaves them unchanged, but removes only 468 spectra, because almost all of the mapping set was taken above that level.
 
 \begin{figure*}[!tp]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_validation.pdf}
-\caption{Comparison with landing-site soils and Lunar Prospector GRS. Top: CLASS ratios within 2\textdegree{} of the landing sites against returned-soil ratios. Bottom: CLASS against Lunar Prospector GRS ratios on 5\textdegree{} equal-area pixels.}\label{fig:validation}
+\caption{Comparison with landing-site soils and Lunar Prospector GRS. Top: CLASS ratios within 2\textdegree{} of the landing sites against returned-soil ratios; vertical error bars are formal standard errors (mostly smaller than the symbols). Bottom: CLASS against Lunar Prospector GRS ratios on 5\textdegree{} equal-area pixels.}\label{fig:validation}
 \end{figure*}
 
+\subsection{Additional landing sites}\label{sec:newsites}
+Four more recent landing sites have in-situ or returned-sample measurements: Chang'E-3 (Alpha Particle X-ray Spectrometer, APXS; \citealp{Ng2023}), Chang'E-5 and Chang'E-6 (returned soils; \citealp{Li2022CE5,Li2024CE6}) and Chandrayaan-3 (APXS; \citealp{Vadawale2024}). They were not part of the validation design, so we treat them as an exploratory comparison, outside the criterion. \Cref{tab:newsites} gives the CLASS values extracted with the same 2\textdegree{} procedure (\NewSiteFpMin--\NewSiteFpMax{} footprints per site). Over all 13 sites, CLASS correlates with the reference values with $r=\AllSiteAlR$ (Al/Si) and \AllSiteMgR{} (Mg/Si); the four new sites alone give $r=\NewSiteAlR$ and \NewSiteMgR, from only four points. As at the Apollo and Luna sites, CLASS is systematically higher (median CLASS/reference over the 13 sites: \AllSiteAlScale{} for Al/Si and \AllSiteMgScale{} for Mg/Si), consistent with relative maps (Limitations 2--3). Two caveats apply. In-situ APXS and scooped samples represent the uppermost regolith at centimetre to metre scales, whereas a footprint averages $25\times37$\,km; and Chang'E-5 lies in a young basalt unit of limited extent \citep{Che2021,Tian2021,Qian2023}, while Chang'E-6 samples a mixed regolith on the floor of the South Pole--Aitken basin.
+
+\begin{table*}[!tp]
+\centering
+\small
+\caption{Additional landing sites (exploratory comparison): reference element weight ratios and CLASS weighted means within 2\textdegree{} ($\pm$ formal standard error). Reference values are converted from oxide weight fractions with oxide-to-element mass factors, using: Chang'E-3, \citet{Ng2023}, Table 9, LS1 mean; Chang'E-5, \citet{Li2022CE5}, Table 1, bulk XRF; Chang'E-6, \citet{Li2024CE6}, soil CE6C0000YJFM00102; Chandrayaan-3, \citet{Vadawale2024}, Table 1, APXS oxide means.}\label{tab:newsites}
+\input{tables/new_sites}
+\end{table*}
+
 \subsection{Interpretation of the correlation values}\label{sec:limits_scores}
-\emph{Agreement with GRS is bounded by noise in both data sets.} We split the mapping set into two halves by alternate months, map each half separately, and correlate the two maps. After Spearman--Brown correction, the CLASS pixel means have reliabilities of \RelAl{} (Al/Si) and \RelMg{} (Mg/Si). The GRS error matrices imply reliabilities of \RelGrsAl{} and \RelGrsMg. The maximum attainable correlations are therefore $\sqrt{\rho_\mathrm{CLASS}\rho_\mathrm{GRS}}=\CeilAl$ for Al/Si and \CeilMg{} for Mg/Si. The observed values are about 80\% of these ceilings. The GRS Mg and Al abundances are themselves model-dependent \citep{Prettyman2006}.
+\emph{Agreement with GRS is bounded by noise in both data sets.} We split the mapping set into two halves by alternate months, map each half separately, and correlate the two maps. Each half is aggregated onto the GRS pixels in the same way as the full set. After Spearman--Brown correction, the CLASS pixel means have reliabilities of \RelAl{} (Al/Si) and \RelMg{} (Mg/Si). For GRS we propagate the MgO, Al$_2$O$_3$ and SiO$_2$ variances and covariances of each pixel's error matrix to first order into the variance of Mg/Si and Al/Si, and define the reliability as one minus the ratio of the median error variance to the variance of the observed ratios across pixels; this gives \RelGrsAl{} and \RelGrsMg. Under these measurement-error assumptions, the estimated maximum attainable correlations are $\sqrt{\rho_\mathrm{CLASS}\rho_\mathrm{GRS}}=\CeilAl$ for Al/Si and \CeilMg{} for Mg/Si. The observed values are about 85\% of these estimated ceilings. The GRS Mg and Al abundances are themselves model-dependent \citep{Prettyman2006}.
 
-\emph{The landing-site test has little discriminating power at this scale.} Applied to the same nine soil averages, using the 5\textdegree{} pixel containing each site, GRS itself gives $r=\GrsSitesAl$ for Al/Si and \GrsSitesMg{} for Mg/Si. Soil averages sample metres to kilometres around each landing point, whereas orbital pixels average tens to hundreds of kilometres \citep{Basu1998}. With nine sites and this mismatch in scale, the site test has limited power, and its outcome for Mg/Si should be interpreted with caution.
+\emph{The landing-site test depends on spatial scale.} Applied to the same nine soil averages, using the 5\textdegree{} pixel containing each site, GRS itself gives only $r=\GrsSitesAl$ for Al/Si and \GrsSitesMg{} for Mg/Si. Soil averages sample metres to kilometres around each landing point \citep{Basu1998}. The CLASS site means (2\textdegree{} radius, about \SI{61}{km}) and the GRS pixels (about \SI{150}{km} across) both average over far larger areas, so both are mismatched to the samples; they differ in how they average the terrain around the sites, which at sites such as Apollo 15, 16 and 17 includes several geological units. With nine sites, the confidence intervals are nevertheless wide, especially for Mg/Si.
 
-\emph{Comparison with the earlier processing.} The earlier processing of the same data (centre-point binning of denoised least-squares fits without a solar model) gives $r=\OldGrsAl$ (Al/Si) and \OldGrsMg{} (Mg/Si) on the same GRS pixels.
-
-\emph{Weighted median.} Replacing the weighted mean by a weighted median changes little: GRS $r=\MedGrsAl$ (Al/Si) and \MedGrsMg{} (Mg/Si). \Cref{fig:posthoc} shows the weighted-median maps.
+\emph{Cell statistic and footprint assignment.} As a robustness check, we replace the weighted mean by an inverse-variance-weighted median. For the GRS comparison, the median is taken over the quality-0 footprints whose centres lie in each 5\textdegree{} pixel, i.e.\ the aggregation of \cref{sec:grs} with the mean replaced by the median; footprint sharing does not enter the GRS comparison in either case. This changes little: GRS $r=\MedGrsAl$ (Al/Si) and \MedGrsMg{} (Mg/Si). For the 2\textdegree{} maps of \cref{fig:posthoc}, each footprint is in addition assigned to the cell containing its centre instead of being shared.
 
 \begin{figure*}[!tp]
 \centering
-\includegraphics[width=\textwidth]{figures/fig_maps_wmedian_posthoc_v3.pdf}
-\caption{Weighted-median maps. Alternative cell statistic (not the primary product): inverse-variance-weighted median of the footprint ratios in each 2\textdegree{} cell, with each footprint assigned to the cell containing its centre (the primary maps of \cref{fig:maps} instead share each footprint over a $5\times5$ grid of sample points). Colour scales as in \cref{fig:maps}.}\label{fig:posthoc}
+\includegraphics[width=\textwidth]{figures/fig_maps_wmedian_posthoc_v5.pdf}
+\caption{Weighted-median maps. Joint robustness check (not the primary product): inverse-variance-weighted median of the footprint ratios in each 2\textdegree{} cell, with each footprint assigned to the cell containing its centre (the primary maps of \cref{fig:maps} instead share each footprint over a $5\times5$ grid of sample points). Colour scales as in \cref{fig:maps}.}\label{fig:posthoc}
 \end{figure*}
 
-\subsection{Alternative model and the history of the primary model}\label{sec:alt}
-The analysis was first run with the instrumental amplitude $\gamma$ free (alternative model, \NMappedvTwo{} mapped spectra). Under the same pre-declared rules, that model gave the following.
+\subsection{Sensitivity to the instrumental Al background}\label{sec:alt}
+In the alternative model the instrumental amplitude $\gamma$ is a free, non-negative parameter on the dayside (\NMappedvTwo{} mapped spectra). It was run at the first stage of the analysis, before the ancillary response, the temperature-binned calibration and the \SIrange{8}{17}{keV} band were introduced. Its controlled reference is therefore the model with $\gamma\equiv0$ at that stage, which used the same calibration, settings and input exposures and differed only in $\gamma$ (the quality-0 sets differ, because the quality flags depend on the fit). Comparisons with the final primary model also include the later calibration changes and are descriptive.
 \begin{itemize}
-\item \emph{GRS:} Al/Si $r=\GrsAlRvTwo$ (\GrsAlCIvTwo) and Mg/Si $r=\GrsMgRvTwo$ (\GrsMgCIvTwo).
-\item \emph{Landing sites (2\textdegree):} Al/Si $r=\SiteAlTwoRvTwo$ and Mg/Si \SiteMgTwoRvTwo. Neither element was claimed under the criterion.
-\item \emph{Diagnosis:} the Al/Si reliability was only \RelAlvTwo{} (ceiling \CeilAlvTwo). In a fixed farside region, the monthly median Al/Si anticorrelated with the fraction of spectra having a non-zero fitted $\gamma$ (Spearman $-0.88$): in some months the free $\gamma$ absorbed part of the lunar Al line.
-\item \emph{Post-hoc check:} restricting that model to spectra with $\gamma<0.05$ (\GzPct\%) gave GRS Al/Si $r=\GzAlR$.
+\item \emph{GRS:} Al/Si $r=\GrsAlRvTwo$ (\GrsAlCIvTwo) and Mg/Si $r=\GrsMgRvTwo$ (\GrsMgCIvTwo), against $r=\GrsAlRvThree$ and \GrsMgRvThree{} with $\gamma\equiv0$ at the same stage (and \GrsAlR{} and \GrsMgR{} for the final primary model).
+\item \emph{Split maps:} the Al/Si reliability of the alternative model is only \RelAlvTwo{} (estimated ceiling \CeilAlvTwo), against \RelAl{} for the final primary model; the split-map reliability of the $\gamma\equiv0$ model of the first stage was not retained.
+\item \emph{Diagnosis:} in a fixed farside region, the monthly median Al/Si anticorrelates with the fraction of spectra having a non-zero fitted $\gamma$ (Spearman $-0.88$), which indicates that in some months the free $\gamma$ absorbs part of the lunar Al line.
+\item \emph{Exploratory check:} restricting the alternative model to spectra with $\gamma<0.05$ (\GzPct\%) gives GRS Al/Si $r=\GzAlR$.
 \end{itemize}
+These results informed the choice of the primary model, in which $\gamma\equiv0$ on the dayside. The choice is also supported, independently of the reference data, by the illumination geometry of \cref{fig:background}, which indicates that the component is negligible on the dayside (\cref{sec:background}).
 
-Because the nightside geometry (\cref{fig:background}) suggests, independently of the reference data, that the component is negligible on the dayside, we then specified the primary model ($\gamma\equiv0$ on the dayside). We logged it, together with the commitment to report its outcome whatever it was, \emph{before} running it on the full data set. All other choices are identical to the alternative model.
+\subsection{A second, disjoint epoch}\label{sec:epochs}
+The \EpBNMonths{} monthly archives from February 2022 to December 2023 were processed with the same pipeline, calibration procedure and quality criteria. Apart from March 2022, they are not part of the primary mapping set. We map them separately (epoch B) and compare them with a map built only from the November 2024 -- May 2026 archives (epoch A), so the two maps contain no dayside mapping exposures in common. They share the pipeline and the calibration procedure, and two epoch-B months (March 2022 and March 2023) use the December 2024 umbra particle-background template (\cref{tab:months} for March 2022); the comparison therefore tests repeatability across disjoint mapping exposures, not full independence. Epoch B gives \EpBNFp{} quality-0 spectra, more than the \EpANFp{} of the November 2024 -- May 2026 archives that form most of the mapping set (epoch A). The two epochs differ in solar conditions (median GOES temperature of the mapped spectra \EpBTmed{} and \EpATmed\,MK) and in detector state (median Al K$\alpha$ FWHM \EpBFwhm{} and \EpAFwhm\,eV). They therefore test whether the retrieved ratios depend on the solar spectrum or on the detector calibration.
+\begin{itemize}
+\item \emph{Cell-by-cell agreement.} In the \EpMgTwoN{} 2\textdegree{} cells with an effective footprint count $\sum_i f_{ic}\ge20$ (\cref{sec:mapping}) in both epochs, the cell means correlate with $r=\EpMgTwoR$ (Mg/Si) and \EpAlTwoR{} (Al/Si). On 10\textdegree{} blocks, formed as inverse-variance-weighted means of the 2\textdegree{} cell means and kept if their summed effective count is at least 20 in each epoch, the correlations are \EpMgTenR{} and \EpAlTenR{} (\cref{fig:epochs}).
+\item \emph{Level.} The median ratio of the 2022--2023 to the 2024--2026 cell means is \EpMgTwoRatio{} for Mg/Si and \EpAlTwoRatio{} for Al/Si, i.e.\ the two epochs agree to about 1\%.
+\item \emph{Validation.} Each epoch alone gives GRS correlations of $r=\EpAGrsMgR$ and \EpBGrsMgR{} (Mg/Si) and \EpAGrsAlR{} and \EpBGrsAlR{} (Al/Si). At the nine landing sites (2\textdegree), Al/Si gives $r=\EpASiteAlR$ and \EpBSiteAlR, and Mg/Si gives $r=\EpASiteMgR$ (95\% CI \EpASiteMgCI) and \EpBSiteMgR{} (\EpBSiteMgCI).
+\end{itemize}
+The cell differences between epochs exceed the formal standard errors of \cref{sec:mapping}, as expected when the per-spectrum uncertainties do not include the solar-spectrum and calibration systematics, but they show no systematic offset.
 
-During development we also corrected one defect after a first validation. The boundary threshold used to flag pinned ratios was raised from $10^{-6}$ to $10^{-3}$, because 254 fits pinned near zero had collapsed Fisher uncertainties and dominated the inverse-variance weights. Before that fix, the alternative model gave GRS Al/Si $r=\GrsAlRvOne$.
-
-The primary model was thus motivated by the diagnosis of the alternative model's validation, and we note this so that readers can weigh it accordingly. Its specification was fixed before it was run, and it rests on a physical argument that does not involve the reference data.
+\begin{figure}[!tp]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_epochs.pdf}
+\caption{Mg/Si (left) and Al/Si (right) on 10\textdegree{} blocks from the February 2022 -- December 2023 archives against those from the November 2024 -- May 2026 archives; the two maps contain no dayside mapping exposures in common and were processed with the same pipeline. Block values are inverse-variance-weighted means of the 2\textdegree{} cell means; blocks with an effective footprint count of at least 20 in each epoch are shown. The line is the 1:1 relation.}\label{fig:epochs}
+\end{figure}
 
 \subsection{Outcome}
-Under the pre-declared rule, Al/Si meets both criteria: GRS ($r=\GrsAlR$) and the landing sites ($r=\SiteAlTwoR$). Mg/Si meets the GRS criterion ($r=\GrsMgR$) but not the nine-site criterion, which GRS itself also does not meet. We therefore present Al/Si as a relative map that is supported by both comparisons, and Mg/Si as a relative map whose large-scale pattern agrees with GRS, without a claim of site-level accuracy.
+Under the pre-declared rule, Al/Si meets both criteria: GRS ($r=\GrsAlR$) and the landing sites ($r=\SiteAlTwoR$), and both are reproduced by each epoch separately. Mg/Si also meets both criteria: GRS ($r=\GrsMgR$) and the landing sites ($r=\SiteMgTwoR$, CI \SiteMgTwoCI), again in each epoch separately, although its site result is less robust than that of Al/Si (\cref{sec:sites}) and it is the more sensitive of the two to the solar spectrum (\cref{sec:xsm}). Both maps are correlated with the reference data, but neither is an absolute measurement: both ratios are higher than the soil values (mean site bias \SiteMgTwoBias{} for Mg/Si and \SiteAlTwoBias{} for Al/Si; Limitations 2--3), and the cause of this offset is not resolved. We therefore present both as relative maps for spatial comparison.

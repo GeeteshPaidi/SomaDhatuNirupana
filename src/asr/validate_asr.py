@@ -161,12 +161,12 @@ def plots(site_t, grs_t, out, tag=""):
         ax.errorbar(g.ref_ratio, g.class_ratio, yerr=g.class_se, fmt="o", ms=4)
         for _, r in g.iterrows():
             ax.annotate(r.site, (r.ref_ratio, r.class_ratio), fontsize=7)
-        ax.set_xlabel(f"Returned-soil {e}/Si")
-        ax.set_ylabel(f"CLASS {e}/Si ({PRIMARY_RADIUS:.0f}° radius)")
+        ax.set_xlabel(f"Returned-soil {e}/Si (weight ratio)")
+        ax.set_ylabel(f"CLASS {e}/Si (weight ratio, {PRIMARY_RADIUS:.0f}° radius)")
         ax = axes[1, j]
         ax.scatter(grs_t[f"grs_{e}_Si"], grs_t[f"class_{e}_Si"], s=5, alpha=0.5)
-        ax.set_xlabel(f"Lunar Prospector GRS {e}/Si (5° pixel)")
-        ax.set_ylabel(f"CLASS {e}/Si (5° pixel)")
+        ax.set_xlabel(f"Lunar Prospector GRS {e}/Si (weight ratio, 5° pixel)")
+        ax.set_ylabel(f"CLASS {e}/Si (weight ratio, 5° pixel)")
     fig.tight_layout()
     fig.savefig(os.path.join(out, f"validation_scatter{tag}.png"), dpi=120)
     fig.savefig(os.path.join(out, f"validation_scatter{tag}.pdf"))
