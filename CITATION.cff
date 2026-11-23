@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "Global Mg/Si and Al/Si maps of the Moon from Chandrayaan-2 CLASS with time-resolved solar excitation from GOES XRS"
+title: "Global lunar Mg/Si and Al/Si weight-ratio maps from Chandrayaan-2 CLASS using GOES solar spectra"
 type: software
 repository-code: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
 url: "https://github.com/GeeteshPaidi/SomaDhatuNirupana"
@@ -21,12 +21,9 @@ authors:
     affiliation: Independent Researcher
     email: subarnomaji@gmail.com
     orcid: "https://orcid.org/0009-0006-4698-6882"
-version: 2.0.3
-date-released: "2026-10-19"
+version: 2.1.0
+date-released: "2026-11-24"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21993207"
     description: "Concept DOI — always resolves to the latest archived version on Zenodo."
-  - type: doi
-    value: "10.5281/zenodo.23459917"
-    description: "Version-specific DOI for v2.0.3."
